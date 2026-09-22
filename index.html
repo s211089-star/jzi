@@ -3,324 +3,775 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>坦克前线护送计算表</title>
+    <title>遺跡載重匹配與計算工具</title>
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.96);
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --accent: #38bdf8;
+            --bg-primary: #0d1117;
+            --bg-card: #161b22;
+            --bg-card-hover: #1f242d;
+            --border-color: #30363d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --accent-gold: #f1e05a;
+            --accent-cyan: #38bdf8;
+            --accent-purple: #c084fc;
+            --accent-green: #4ade80;
+            --accent-orange: #fb923c;
+            --accent-pink: #f472b6;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 16px;
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 20px;
             position: relative;
         }
 
-        /* 采用 SVG 无缝平铺背景，确保四个角落、边缘全覆盖零死角 */
-        .watermark-overlay {
+        /* 全屏平鋪文字水印效果 */
+        body::before {
+            content: "";
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: 0;
             pointer-events: none;
-            opacity: 0.15;
-            /* 使用动态编码的 SVG 图像作为平铺背景 */
+            z-index: 9999;
+            opacity: 0.06;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='250' height='150'><text x='20' y='80' fill='%23ffffff' font-size='16' font-family='sans-serif' transform='rotate(-25 100 80)'>3k887忆春风出品</text></svg>");
             background-repeat: repeat;
-            background-position: center center;
         }
 
         .container {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
             position: relative;
             z-index: 1;
-            width: 100%;
-            max-width: 650px;
-            background: var(--card-bg);
-            padding: 28px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(8px);
         }
 
-        h2 {
-            margin-bottom: 20px;
-            color: var(--text);
+        header {
             text-align: center;
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            font-size: 1.6rem;
+            color: var(--accent-gold);
+            letter-spacing: 1px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
         }
 
-        .form-group {
-            margin-bottom: 16px;
+        header p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 6px;
         }
 
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--text-muted);
+        /* Relic Type Selection Cards */
+        .relic-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
         }
 
-        input {
-            width: 100%;
-            padding: 12px 14px;
-            background-color: #0f172a;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 15px;
-            color: var(--text);
-            transition: all 0.2s ease;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
-        }
-
-        .fixed-info {
-            padding: 10px 14px;
-            background-color: rgba(56, 189, 248, 0.1);
-            border: 1px dashed var(--accent);
-            border-radius: 8px;
-            color: var(--accent);
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            text-align: center;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.1s ease;
-            margin-top: 8px;
-        }
-
-        button:hover {
-            background-color: var(--primary-hover);
-        }
-
-        button:active {
-            transform: scale(0.99);
-        }
-
-        .result-box {
-            margin-top: 24px;
-            padding: 20px;
-            background-color: rgba(15, 23, 42, 0.8);
-            border: 1px solid var(--border);
+        .relic-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
             border-radius: 12px;
-            display: none;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        .summary {
-            font-size: 15px;
-            line-height: 1.6;
+        .relic-card:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-2px);
+        }
+
+        .relic-card.active {
+            border-color: var(--accent-gold);
+            background: linear-gradient(145deg, rgba(241, 224, 90, 0.08), rgba(22, 27, 34, 0.95));
+            box-shadow: 0 0 15px rgba(241, 224, 90, 0.2);
+        }
+
+        .relic-card .title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .relic-card .rate {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .relic-card .badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 6px;
+            font-weight: 600;
+        }
+
+        /* Specific theme accents for relic types */
+        .relic-card[data-type="small"] .title { color: var(--accent-green); }
+        .relic-card[data-type="small"] .badge { background: rgba(74, 222, 128, 0.15); color: var(--accent-green); }
+
+        .relic-card[data-type="medium"] .title { color: var(--accent-cyan); }
+        .relic-card[data-type="medium"] .badge { background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); }
+
+        .relic-card[data-type="large"] .title { color: var(--accent-purple); }
+        .relic-card[data-type="large"] .badge { background: rgba(192, 132, 252, 0.15); color: var(--accent-purple); }
+
+        .relic-card[data-type="mega"] .title { color: var(--accent-orange); }
+        .relic-card[data-type="mega"] .badge { background: rgba(251, 146, 60, 0.15); color: var(--accent-orange); }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--border-color);
+            color: var(--accent-gold);
+        }
+
+        /* Main Panel / Section Box */
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            color: var(--accent-cyan);
             margin-bottom: 16px;
-            color: var(--text);
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 8px;
         }
 
-        .table-wrapper {
-            overflow-x: auto;
+        /* Input Control Group */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .custom-input {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            font-weight: bold;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .custom-input:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .unit {
+            font-weight: bold;
+            color: var(--accent-gold);
+            font-size: 1.1rem;
+        }
+
+        /* Quick Add Buttons */
+        .quick-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .btn-chip {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-chip:hover {
+            border-color: var(--accent-cyan);
+            color: var(--text-primary);
+        }
+
+        .btn-chip.clear {
+            border-color: rgba(244, 114, 182, 0.4);
+            color: var(--accent-pink);
+        }
+
+        /* Output Cards Display */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .res-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .res-card .label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .res-card .val {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .res-card .sub {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Progress Bar Section for Next Node */
+        .progress-box {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 12px;
+            background: #21262d;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-gold));
+            width: 0%;
+            transition: width 0.4s ease;
+            border-radius: 6px;
+        }
+
+        .progress-footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        .gap-highlight {
+            color: var(--accent-pink);
+            font-weight: bold;
+        }
+
+        /* Table Section */
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-top: 10px;
+            position: relative;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
-            text-align: center;
-        }
-
-        th, td {
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            text-align: left;
         }
 
         th {
-            background-color: rgba(30, 41, 59, 0.8);
-            color: var(--text-muted);
+            background: var(--bg-primary);
+            position: sticky;
+            top: 0;
+            color: var(--text-secondary);
+            padding: 10px 12px;
             font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            z-index: 10;
         }
 
-        tr:nth-child(even) {
-            background-color: rgba(255, 255, 255, 0.02);
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+            color: var(--text-primary);
+        }
+
+        tr:hover {
+            background: var(--bg-card-hover);
+        }
+
+        tr.active-row {
+            background: rgba(241, 224, 90, 0.18) !important;
+            border-left: 4px solid var(--accent-gold);
+            font-weight: bold;
+        }
+
+        tr.target-row {
+            background: rgba(56, 189, 248, 0.18) !important;
+            border-left: 4px solid var(--accent-cyan);
+            font-weight: bold;
+        }
+
+        tr.next-row {
+            background: rgba(56, 189, 248, 0.08);
+            border-left: 3px dashed var(--accent-cyan);
+        }
+
+        /* Utility Hidden Class */
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <h1>🏛️ 遺跡載重匹配與計算工具</h1>
+            <p>實時精準計算遺跡掛機載重需求、掛機時長及下一節點階梯差距（動態高亮與自動對齊）</p>
+        </header>
 
-<!-- 无死角 SVG 背景水印层 -->
-<div class="watermark-overlay" id="watermarkOverlay"></div>
+        <!-- Relic Type Selection Header -->
+        <div class="relic-selector" id="relicSelector">
+            <div class="relic-card active" data-type="small">
+                <div class="title">小型遺跡</div>
+                <div class="rate">24,500 資源/分鐘</div>
+                <div class="badge">基礎級 (0.74M/30分)</div>
+            </div>
+            <div class="relic-card" data-type="medium">
+                <div class="title">中型遺跡</div>
+                <div class="rate">44,200 資源/分鐘</div>
+                <div class="badge">進階級 (1.33M/30分)</div>
+            </div>
+            <div class="relic-card" data-type="large">
+                <div class="title">大型遺跡</div>
+                <div class="rate">72,700 資源/分鐘</div>
+                <div class="badge">高級 (2.19M/30分)</div>
+            </div>
+            <div class="relic-card" data-type="mega">
+                <div class="title">巨型遺跡</div>
+                <div class="rate">118,000 資源/分鐘</div>
+                <div class="badge">史詩級 (3.54M/30分)</div>
+            </div>
+        </div>
 
-<div class="container">
-    <h2>🛡️ 坦克前线护送计算表</h2>
+        <!-- Mode Toggle Tabs -->
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('loadMode')">⚡ 正向：輸入當前載重算匹配</button>
+            <button class="tab-btn" onclick="switchTab('targetMode')">🎯 反向：按時間/次數查所需載重</button>
+        </div>
 
-    <div class="fixed-info">
-        ⚡ 消耗规则：每日护送消耗从 5 金币开始，每次 +5（每日重置）
-    </div>
+        <!-- TAB 1: Load Mode -->
+        <div id="loadMode" class="panel">
+            <div class="panel-title">📦 輸入您的部隊總載重 (M)</div>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <input type="number" id="loadInput" class="custom-input" placeholder="例如: 7.58" step="0.01" min="0" value="7.58" oninput="updateAllCalculations()">
+                    <span class="unit">M 載重</span>
+                </div>
+                <div class="quick-btns">
+                    <button class="btn-chip" onclick="addLoad(1)">+1M</button>
+                    <button class="btn-chip" onclick="addLoad(5)">+5M</button>
+                    <button class="btn-chip" onclick="addLoad(10)">+10M</button>
+                    <button class="btn-chip" onclick="addLoad(50)">+50M</button>
+                    <button class="btn-chip" onclick="addLoad(100)">+100M</button>
+                    <button class="btn-chip clear" onclick="clearLoad()">清空</button>
+                </div>
+            </div>
 
-    <div class="form-group">
-        <label for="initialGold">现有初始金币数量：</label>
-        <input type="number" id="initialGold" placeholder="例如：1000" value="1000" min="0">
-    </div>
+            <div class="results-grid">
+                <div class="res-card">
+                    <span class="label">可容納獲取次數</span>
+                    <span class="val" id="resCount" style="color: var(--accent-gold);">0 次</span>
+                    <span class="sub" id="resStepIndex">對應第 0 階梯</span>
+                </div>
+                <div class="res-card">
+                    <span class="label">最長可掛機時間</span>
+                    <span class="val" id="resTime" style="color: var(--accent-cyan);">0 小時 0 分</span>
+                    <span class="sub" id="resHours">約 0.0 小時</span>
+                </div>
+                <div class="res-card">
+                    <span class="label">預計獲取資源總量</span>
+                    <span class="val" id="resResource" style="color: var(--accent-purple);">0</span>
+                    <span class="sub" id="resRate">速率: 0/分</span>
+                </div>
+            </div>
 
-    <div class="form-group">
-        <label for="dailyLimit">每日最大护送次数限制（输入0为不限制）：</label>
-        <input type="number" id="dailyLimit" placeholder="0代表无限次" value="0" min="0">
-    </div>
+            <!-- Distance to Next Tier Progress Bar -->
+            <div class="progress-box">
+                <div class="progress-header">
+                    <span>🚀 距離下一個載重點差距</span>
+                    <span id="progressText" class="gap-highlight">還差 0.00 M</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-footer">
+                    <span id="curNodeText">當前: 0 M</span>
+                    <span id="nextNodeText">下一目標: 0 M (+30分鐘)</span>
+                </div>
+            </div>
+        </div>
 
-    <div class="form-group">
-        <label for="days">规划天数：</label>
-        <input type="number" id="days" placeholder="输入你想计算的天数" value="4" min="1">
-    </div>
+        <!-- TAB 2: Target Mode -->
+        <div id="targetMode" class="panel hidden">
+            <div class="panel-title">🎯 選擇期望獲取次數 (查所需載重)</div>
+            <div class="input-group">
+                <label class="input-label">輸入精髓獲取次數（每30分鐘獲取1次）：</label>
+                <div class="input-wrapper">
+                    <input type="number" id="targetCountInput" class="custom-input" min="1" value="10" oninput="updateAllCalculations()">
+                    <span class="unit">次 (即 <span id="targetHoursDisplay">5.0</span> 小時)</span>
+                </div>
+                <div class="quick-btns">
+                    <button class="btn-chip" onclick="setTargetCount(4)">2小時 (4次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(8)">4小時 (8次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(10)">5小時 (10次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(16)">8小時 (16次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(24)">12小時 (24次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(48)">24小時 (48次)</button>
+                </div>
+            </div>
 
-    <button onclick="calculateStrategy()">自动计算平均分配方案</button>
+            <div class="results-grid">
+                <div class="res-card">
+                    <span class="label">需要載重 (M)</span>
+                    <span class="val" id="targetReqLoad" style="color: var(--accent-gold);">0 M</span>
+                    <span class="sub" id="targetFormulaSub">計算公式: ROUNDUP(次數 × 單次門檻, 2)</span>
+                </div>
+                <div class="res-card">
+                    <span class="label">對應掛機時間</span>
+                    <span class="val" id="targetDuration" style="color: var(--accent-cyan);">0 小時</span>
+                    <span class="sub" id="targetTotalMins">共 0 分鐘</span>
+                </div>
+                <div class="res-card">
+                    <span class="label">可收集資源總量</span>
+                    <span class="val" id="targetTotalResource" style="color: var(--accent-green);">0</span>
+                    <span class="sub">全額無溢出收貨</span>
+                </div>
+            </div>
+        </div>
 
-    <div id="resultBox" class="result-box">
-        <div class="summary" id="summaryText"></div>
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>天数</th>
-                        <th>分配护送次数</th>
-                        <th>当日消耗金币</th>
-                        <th>剩余金币</th>
-                    </tr>
-                </thead>
-                <tbody id="detailTable"></tbody>
-            </table>
+        <!-- Tier Table Comparison Panel -->
+        <div class="panel">
+            <div class="panel-title">📊 當前遺跡階梯對照表（動態匹配與自動滾動定位）</div>
+            <div class="table-container" id="tableContainer">
+                <table id="tierTable">
+                    <thead>
+                        <tr>
+                            <th>序號</th>
+                            <th>掛機時長</th>
+                            <th>獲取次數</th>
+                            <th>門檻載重 (M)</th>
+                            <th>累計資源數量</th>
+                            <th>狀態匹配</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-// 生成全屏 SVG 矢量平铺防伪水印（无漏洞覆盖四角）
-function setSvgWatermark() {
-    const text = "3k887忆春风出品";
-    // 创建一个包含倾斜文本的 260x160 矢量单元
-    const svgString = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="260" height="160">
-        <text x="130" y="80" 
-              fill="#ffffff" 
-              font-size="16" 
-              font-weight="bold" 
-              font-family="sans-serif" 
-              text-anchor="middle" 
-              transform="rotate(-22, 130, 80)">
-            ${text}
-        </text>
-    </svg>`;
-    
-    // 转为 base64 赋值给 CSS background-image
-    const encodedSvg = btoa(unescape(encodeURIComponent(svgString)));
-    const overlay = document.getElementById('watermarkOverlay');
-    overlay.style.backgroundImage = `url("data:image/svg+xml;base64,${encodedSvg}")`;
-}
+    <script>
+        // 遺跡基礎配置（對齊 Excel 算法及 A3 單次門檻載重）
+        const RELIC_CONFIG = {
+            small: {
+                name: '小型遺跡',
+                ratePerMin: 24500,
+                stepLoadA3: 0.74 // Excel A3 = ROUNDUP(24500*30/1e6, 2)
+            },
+            medium: {
+                name: '中型遺跡',
+                ratePerMin: 44200,
+                stepLoadA3: 1.33 // Excel A3 = ROUNDUP(44200*30/1e6, 2)
+            },
+            large: {
+                name: '大型遺跡',
+                ratePerMin: 72700,
+                stepLoadA3: 2.19 // Excel A3 = ROUNDUP(72700*30/1e6, 2)
+            },
+            mega: {
+                name: '巨型遺跡',
+                ratePerMin: 118000,
+                stepLoadA3: 3.54 // Excel A3 = ROUNDUP(118000*30/1e6, 2)
+            }
+        };
 
-// 计算单日护送 K 次所需的总金币消耗: 5 + 10 + 15 + ... + (5*K) = 2.5 * K * (K + 1)
-function getDailyCost(k) {
-    if (k <= 0) return 0;
-    return 2.5 * k * (k + 1);
-}
-
-// 自动计算平均分配方案
-function calculateStrategy() {
-    const initialGold = parseFloat(document.getElementById('initialGold').value) || 0;
-    let dailyLimit = parseInt(document.getElementById('dailyLimit').value) || 0;
-    const days = parseInt(document.getElementById('days').value) || 1;
-
-    if (dailyLimit <= 0) {
-        dailyLimit = Infinity;
-    }
-
-    // 计算每天可以护送的最大相同次数 k
-    let k = 0;
-    while (true) {
-        let nextK = k + 1;
-        if (dailyLimit !== Infinity && nextK > dailyLimit) {
-            break; // 超过每日上限
+        // Excel 公式 1 (表格列): ROUNDUP($E$3 * count * 30 / 1000000, 2)
+        function getReqLoad(rate, count) {
+            if (count <= 0) return 0;
+            const raw = (rate * count * 30) / 1000000;
+            return Math.ceil(Math.round(raw * 1000000) / 10000) / 100;
         }
-        let totalCostNeeded = days * getDailyCost(nextK);
-        if (totalCostNeeded <= initialGold) {
-            k = nextK; // 金币能够支撑，继续尝试 +1
-        } else {
-            break; // 金币不足
+
+        // Excel 公式 2 (可容納次數): ROUNDDOWN((F3 * 1000000) / (rate * 30), 0)
+        function getCapacityCount(rate, load) {
+            if (load <= 0) return 0;
+            return Math.floor((load * 1000000) / (rate * 30));
         }
-    }
 
-    const singleDayCost = getDailyCost(k);
-    const totalCost = singleDayCost * days;
-    const totalBuys = k * days;
-    let currentGold = initialGold;
+        // Excel 公式 3 (反向查找 H5): ROUNDUP(H3 * A3, 2)
+        function getTargetReqLoadExcel(stepLoadA3, count) {
+            if (count <= 0) return 0;
+            const raw = count * stepLoadA3;
+            return Math.ceil(Math.round(raw * 1000000) / 10000) / 100;
+        }
 
-    const tableBody = document.getElementById('detailTable');
-    tableBody.innerHTML = '';
+        let currentType = 'small';
+        let currentTab = 'loadMode';
 
-    for (let day = 1; day <= days; day++) {
-        currentGold -= singleDayCost;
+        window.onload = function() {
+            document.querySelectorAll('.relic-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    document.querySelectorAll('.relic-card').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    currentType = this.getAttribute('data-type');
+                    updateAllCalculations();
+                });
+            });
 
-        const row = `<tr>
-            <td>第 ${day} 天</td>
-            <td><b>${k}</b> 次</td>
-            <td style="color:#f87171;">-${singleDayCost} 金币</td>
-            <td>${currentGold}</td>
-        </tr>`;
-        tableBody.innerHTML += row;
-    }
+            updateAllCalculations();
+        };
 
-    const limitDisplay = (dailyLimit === Infinity) ? "不限制" : `${dailyLimit} 次`;
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.nav-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+            if (tabId === 'loadMode') {
+                document.querySelectorAll('.nav-tabs .tab-btn')[0].classList.add('active');
+                document.getElementById('loadMode').classList.remove('hidden');
+                document.getElementById('targetMode').classList.add('hidden');
+            } else {
+                document.querySelectorAll('.nav-tabs .tab-btn')[1].classList.add('active');
+                document.getElementById('loadMode').classList.add('hidden');
+                document.getElementById('targetMode').classList.remove('hidden');
+            }
+            updateAllCalculations();
+        }
 
-    document.getElementById('summaryText').innerHTML = 
-        `<b>${days} 天平均分配方案：</b><br>` +
-        `• 每日限制：<b>${limitDisplay}</b><br>` +
-        `• 每日平均护送：<b style="color:#38bdf8; font-size: 17px;">${k} 次/天</b>（${days} 天完全一致）<br>` +
-        `• ${days} 天总护送：<b>${totalBuys}</b> 次<br>` +
-        `• 累计消耗金币：<b>${totalCost}</b><br>` +
-        `• 最终剩余金币：<b>${currentGold}</b>`;
+        function formatNumber(num) {
+            return Math.round(num).toLocaleString('zh-CN');
+        }
 
-    document.getElementById('resultBox').style.display = 'block';
-}
+        function addLoad(val) {
+            const input = document.getElementById('loadInput');
+            let cur = parseFloat(input.value) || 0;
+            input.value = (cur + val).toFixed(2);
+            updateAllCalculations();
+        }
 
-// 初始化水印
-window.onload = setSvgWatermark;
-</script>
+        function clearLoad() {
+            document.getElementById('loadInput').value = '';
+            updateAllCalculations();
+        }
 
+        function setTargetCount(count) {
+            document.getElementById('targetCountInput').value = count;
+            updateAllCalculations();
+        }
+
+        function updateAllCalculations() {
+            const matchedCount = calculateLoadMode();
+            const targetCount = calculateTargetMode();
+            renderTable(matchedCount, targetCount);
+        }
+
+        function calculateLoadMode() {
+            const relic = RELIC_CONFIG[currentType];
+            const load = parseFloat(document.getElementById('loadInput').value) || 0;
+            
+            const count = getCapacityCount(relic.ratePerMin, load);
+            const timeMins = count * 30;
+            const hours = Math.floor(timeMins / 60);
+            const mins = timeMins % 60;
+            const totalResource = timeMins * relic.ratePerMin;
+
+            document.getElementById('resCount').innerText = count + ' 次';
+            document.getElementById('resStepIndex').innerText = count > 0 ? `匹配第 ${count} 階梯` : '未達到最低要求階梯';
+            document.getElementById('resTime').innerText = `${hours} 小時 ${mins} 分`;
+            document.getElementById('resHours').innerText = `約 ${(timeMins / 60).toFixed(1)} 小時`;
+            document.getElementById('resResource').innerText = formatNumber(totalResource);
+            document.getElementById('resRate').innerText = `速率: ${formatNumber(relic.ratePerMin)}/分`;
+
+            const curReq = getReqLoad(relic.ratePerMin, count);
+            const nextReq = getReqLoad(relic.ratePerMin, count + 1);
+            
+            let gap = (nextReq - load).toFixed(2);
+            if (gap <= 0) gap = "0.00";
+            
+            let range = nextReq - curReq;
+            let progress = range > 0 ? ((load - curReq) / range) * 100 : 0;
+            if (progress < 0) progress = 0;
+            if (progress > 100) progress = 100;
+
+            document.getElementById('progressText').innerText = `還差 ${gap} M 載重即可達到下一階`;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('curNodeText').innerText = `當前載重: ${load.toFixed(2)} M (本階門檻 ${curReq.toFixed(2)}M)`;
+            document.getElementById('nextNodeText').innerText = `目標: ${nextReq.toFixed(2)} M (+30分鐘)`;
+
+            return count;
+        }
+
+        function calculateTargetMode() {
+            const relic = RELIC_CONFIG[currentType];
+            let count = parseInt(document.getElementById('targetCountInput').value) || 1;
+            if (count < 1) count = 1;
+
+            const timeMins = count * 30;
+            const hours = (timeMins / 60).toFixed(1);
+
+            const reqLoad = getTargetReqLoadExcel(relic.stepLoadA3, count).toFixed(2);
+            const totalResource = timeMins * relic.ratePerMin;
+
+            document.getElementById('targetHoursDisplay').innerText = hours;
+            document.getElementById('targetReqLoad').innerText = reqLoad + ' M';
+            document.getElementById('targetFormulaSub').innerText = `公式: ROUNDUP(${count}次 × ${relic.stepLoadA3}M, 2)`;
+            document.getElementById('targetDuration').innerText = `${Math.floor(timeMins/60)} 小時 ${timeMins%60} 分`;
+            document.getElementById('targetTotalMins').innerText = `共 ${timeMins} 分鐘 (${hours}小時)`;
+            document.getElementById('targetTotalResource').innerText = formatNumber(totalResource);
+
+            return count;
+        }
+
+        function renderTable(matchedCount, targetCount) {
+            const relic = RELIC_CONFIG[currentType];
+            const tbody = document.getElementById('tableBody');
+            let html = '';
+
+            const focusCount = currentTab === 'loadMode' ? matchedCount : targetCount;
+            const maxRows = Math.max(58, focusCount + 10);
+
+            for (let i = 1; i <= maxRows; i++) {
+                const count = i;
+                const mins = count * 30;
+                const hours = (mins / 60).toFixed(1);
+                const reqLoad = getReqLoad(relic.ratePerMin, count).toFixed(2);
+                const totalResource = mins * relic.ratePerMin;
+
+                let rowClass = '';
+                let statusText = '-';
+
+                if (currentTab === 'loadMode') {
+                    if (count === matchedCount) {
+                        rowClass = 'active-row';
+                        statusText = '🎯 正向匹配';
+                    } else if (count === matchedCount + 1) {
+                        rowClass = 'next-row';
+                        statusText = '⚡ 下一階梯';
+                    }
+                } else {
+                    if (count === targetCount) {
+                        rowClass = 'target-row';
+                        statusText = '🎯 目標次數';
+                    }
+                }
+
+                html += `
+                    <tr id="row-${count}" class="${rowClass}">
+                        <td>第 ${count} 階</td>
+                        <td>${hours} 小時 (${mins}分)</td>
+                        <td>${count} 次</td>
+                        <td><strong>${reqLoad} M</strong></td>
+                        <td>${formatNumber(totalResource)}</td>
+                        <td>${statusText}</td>
+                    </tr>
+                `;
+            }
+
+            tbody.innerHTML = html;
+
+            // 平滑自動滾動至高亮行
+            setTimeout(() => {
+                const activeRowId = currentTab === 'loadMode' ? `row-${matchedCount}` : `row-${targetCount}`;
+                const targetRowEl = document.getElementById(activeRowId);
+                if (targetRowEl) {
+                    targetRowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 50);
+        }
+    </script>
 </body>
 </html>
