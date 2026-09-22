@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>坦克前线护送计算表</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.96);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --accent: #38bdf8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* 采用 SVG 无缝平铺背景，确保四个角落、边缘全覆盖零死角 */
+        .watermark-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.15;
+            /* 使用动态编码的 SVG 图像作为平铺背景 */
+            background-repeat: repeat;
+            background-position: center center;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            padding: 28px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: var(--text);
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            background-color: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            color: var(--text);
+            transition: all 0.2s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+        }
+
+        .fixed-info {
+            padding: 10px 14px;
+            background-color: rgba(56, 189, 248, 0.1);
+            border: 1px dashed var(--accent);
+            border-radius: 8px;
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 8px;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button:active {
+            transform: scale(0.99);
+        }
+
+        .result-box {
+            margin-top: 24px;
+            padding: 20px;
+            background-color: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: none;
+        }
+
+        .summary {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: rgba(30, 41, 59, 0.8);
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+    </style>
+</head>
+<body>
+
+<!-- 无死角 SVG 背景水印层 -->
+<div class="watermark-overlay" id="watermarkOverlay"></div>
+
+<div class="container">
+    <h2>🛡️ 坦克前线护送计算表</h2>
+
+    <div class="fixed-info">
+        ⚡ 消耗规则：每日护送消耗从 5 金币开始，每次 +5（每日重置）
+    </div>
+
+    <div class="form-group">
+        <label for="initialGold">现有初始金币数量：</label>
+        <input type="number" id="initialGold" placeholder="例如：1000" value="1000" min="0">
+    </div>
+
+    <div class="form-group">
+        <label for="dailyLimit">每日最大护送次数限制（输入0为不限制）：</label>
+        <input type="number" id="dailyLimit" placeholder="0代表无限次" value="0" min="0">
+    </div>
+
+    <div class="form-group">
+        <label for="days">规划天数：</label>
+        <input type="number" id="days" placeholder="输入你想计算的天数" value="4" min="1">
+    </div>
+
+    <button onclick="calculateStrategy()">自动计算平均分配方案</button>
+
+    <div id="resultBox" class="result-box">
+        <div class="summary" id="summaryText"></div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>天数</th>
+                        <th>分配护送次数</th>
+                        <th>当日消耗金币</th>
+                        <th>剩余金币</th>
+                    </tr>
+                </thead>
+                <tbody id="detailTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// 生成全屏 SVG 矢量平铺防伪水印（无漏洞覆盖四角）
+function setSvgWatermark() {
+    const text = "3k887忆春风出品";
+    // 创建一个包含倾斜文本的 260x160 矢量单元
+    const svgString = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="260" height="160">
+        <text x="130" y="80" 
+              fill="#ffffff" 
+              font-size="16" 
+              font-weight="bold" 
+              font-family="sans-serif" 
+              text-anchor="middle" 
+              transform="rotate(-22, 130, 80)">
+            ${text}
+        </text>
+    </svg>`;
+    
+    // 转为 base64 赋值给 CSS background-image
+    const encodedSvg = btoa(unescape(encodeURIComponent(svgString)));
+    const overlay = document.getElementById('watermarkOverlay');
+    overlay.style.backgroundImage = `url("data:image/svg+xml;base64,${encodedSvg}")`;
+}
+
+// 计算单日护送 K 次所需的总金币消耗: 5 + 10 + 15 + ... + (5*K) = 2.5 * K * (K + 1)
+function getDailyCost(k) {
+    if (k <= 0) return 0;
+    return 2.5 * k * (k + 1);
+}
+
+// 自动计算平均分配方案
+function calculateStrategy() {
+    const initialGold = parseFloat(document.getElementById('initialGold').value) || 0;
+    let dailyLimit = parseInt(document.getElementById('dailyLimit').value) || 0;
+    const days = parseInt(document.getElementById('days').value) || 1;
+
+    if (dailyLimit <= 0) {
+        dailyLimit = Infinity;
+    }
+
+    // 计算每天可以护送的最大相同次数 k
+    let k = 0;
+    while (true) {
+        let nextK = k + 1;
+        if (dailyLimit !== Infinity && nextK > dailyLimit) {
+            break; // 超过每日上限
+        }
+        let totalCostNeeded = days * getDailyCost(nextK);
+        if (totalCostNeeded <= initialGold) {
+            k = nextK; // 金币能够支撑，继续尝试 +1
+        } else {
+            break; // 金币不足
+        }
+    }
+
+    const singleDayCost = getDailyCost(k);
+    const totalCost = singleDayCost * days;
+    const totalBuys = k * days;
+    let currentGold = initialGold;
+
+    const tableBody = document.getElementById('detailTable');
+    tableBody.innerHTML = '';
+
+    for (let day = 1; day <= days; day++) {
+        currentGold -= singleDayCost;
+
+        const row = `<tr>
+            <td>第 ${day} 天</td>
+            <td><b>${k}</b> 次</td>
+            <td style="color:#f87171;">-${singleDayCost} 金币</td>
+            <td>${currentGold}</td>
+        </tr>`;
+        tableBody.innerHTML += row;
+    }
+
+    const limitDisplay = (dailyLimit === Infinity) ? "不限制" : `${dailyLimit} 次`;
+
+    document.getElementById('summaryText').innerHTML = 
+        `<b>${days} 天平均分配方案：</b><br>` +
+        `• 每日限制：<b>${limitDisplay}</b><br>` +
+        `• 每日平均护送：<b style="color:#38bdf8; font-size: 17px;">${k} 次/天</b>（${days} 天完全一致）<br>` +
+        `• ${days} 天总护送：<b>${totalBuys}</b> 次<br>` +
+        `• 累计消耗金币：<b>${totalCost}</b><br>` +
+        `• 最终剩余金币：<b>${currentGold}</b>`;
+
+    document.getElementById('resultBox').style.display = 'block';
+}
+
+// 初始化水印
+window.onload = setSvgWatermark;
+</script>
+
+</body>
+</html>
