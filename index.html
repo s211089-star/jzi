@@ -25,7 +25,8 @@
                             moon: '#c084fc',
                             sun: '#f97316',
                             srank: '#ef4444',
-                            ssrank: '#eab308'
+                            ssrank: '#eab308',
+                            stone: '#06b6d4'
                         }
                     }
                 }
@@ -57,7 +58,7 @@
             align-content: flex-start;
             justify-content: space-around;
             transform: rotate(-22deg);
-            opacity: 0.12;
+            opacity: 0.11;
         }
 
         .watermark-item {
@@ -107,7 +108,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* 动态背景斜纹水印纹理 */
         .input-watermark-bg {
             background-image: linear-gradient(135deg, rgba(245, 158, 11, 0.03) 25%, transparent 25%, transparent 50%, rgba(245, 158, 11, 0.03) 50%, rgba(245, 158, 11, 0.03) 75%, transparent 75%, transparent);
             background-size: 20px 20px;
@@ -116,16 +116,13 @@
 </head>
 <body class="min-h-screen py-6 px-3 sm:px-6 font-sans">
 
-    <!-- 全屏平铺背景水印（无点击穿透） -->
-    <div class="watermark-grid-bg" id="watermark-container">
-        <!-- JS 动态平铺水印项 -->
-    </div>
+    <!-- 全屏平铺背景水印 -->
+    <div class="watermark-grid-bg" id="watermark-container"></div>
 
     <div class="max-w-5xl mx-auto space-y-6 relative z-10">
 
         <!-- 顶部 Header 标题与模式切换 -->
         <header class="glass-panel rounded-2xl p-4 sm:p-6 text-center relative overflow-hidden border border-amber-500/20 shadow-2xl">
-            <!-- Header 右上角与背景嵌入水印 -->
             <div class="absolute -right-6 -top-2 text-[55px] font-black text-amber-500/5 select-none pointer-events-none rotate-12">
                 3k887忆春风制作
             </div>
@@ -141,13 +138,13 @@
                 <h1 class="text-3xl sm:text-4xl font-black tracking-wide gold-gradient-text mb-2">
                     将领合成计算机
                 </h1>
-                <p class="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto">
-                    精准计算库存转换率、目标阶梯缺口与最优合成路径
+                <p class="text-slate-400 text-xs sm:text-sm max-w-xl mx-auto">
+                    支持将领合成折算、进阶石需求精算、双向缺口分析及受限合成预测
                 </p>
 
                 <!-- 模式切换开关 -->
-                <div class="mt-6 inline-flex p-1.5 rounded-xl bg-slate-900/80 border border-slate-700/80 relative">
-                    <button id="mode-normal-btn" onclick="setMode('normal')" class="relative z-10 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 text-white bg-slate-800 shadow-lg">
+                <div class="mt-5 inline-flex p-1.5 rounded-xl bg-slate-900/80 border border-slate-700/80 relative">
+                    <button id="mode-normal-btn" onclick="setMode('normal')" class="relative z-10 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 text-white bg-slate-800 shadow-lg border border-slate-600">
                         <i class="fa-solid fa-scale-balanced text-slate-400"></i>
                         常规模式 <span class="text-xs px-2 py-0.5 rounded bg-slate-700 text-amber-300">6 合 1</span>
                     </button>
@@ -160,16 +157,16 @@
             <div class="card-corner-watermark">【3k887忆春风制作】</div>
         </header>
 
-        <!-- 主内容区域：两列布局（桌面端） -->
+        <!-- 主内容区域：两列布局 -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
             <!-- 左侧：输入面板 -->
             <div class="lg:col-span-5 space-y-6">
-                <!-- 1. 当前库存输入 -->
+                <!-- 1. 当前库存输入（将领 + 进阶石） -->
                 <div class="glass-panel rounded-2xl p-5 border border-slate-700/60 shadow-xl relative overflow-hidden">
                     <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-700/50">
                         <h2 class="text-lg font-bold flex items-center gap-2 text-amber-400">
-                            <i class="fa-solid fa-boxes-stacked"></i> 当前拥有的将领
+                            <i class="fa-solid fa-boxes-stacked"></i> 当前拥有的资源
                         </h2>
                         <div class="flex gap-2">
                             <button onclick="fillDemoData()" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 transition">
@@ -181,13 +178,13 @@
                         </div>
                     </div>
 
-                    <!-- 水印斜纹背景输入组 -->
-                    <div class="space-y-3 input-watermark-bg p-1 rounded-xl" id="inventory-inputs">
+                    <!-- 输入项列表 -->
+                    <div class="space-y-2.5 input-watermark-bg p-1 rounded-xl">
                         <!-- 星星 -->
                         <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 relative">
-                            <div class="flex items-center gap-2.5 min-w-[100px]">
-                                <span class="text-xl">⭐</span>
-                                <span class="text-sm font-bold text-sky-400">星星将领</span>
+                            <div class="flex items-center gap-2 min-w-[100px]">
+                                <span class="text-lg">⭐</span>
+                                <span class="text-xs sm:text-sm font-bold text-sky-400">星星将领</span>
                             </div>
                             <div class="flex items-center gap-1">
                                 <button onclick="adjustValue('star', -1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">-</button>
@@ -198,9 +195,9 @@
 
                         <!-- 月亮 -->
                         <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 relative">
-                            <div class="flex items-center gap-2.5 min-w-[100px]">
-                                <span class="text-xl">🌙</span>
-                                <span class="text-sm font-bold text-purple-400">月亮将领</span>
+                            <div class="flex items-center gap-2 min-w-[100px]">
+                                <span class="text-lg">🌙</span>
+                                <span class="text-xs sm:text-sm font-bold text-purple-400">月亮将领</span>
                             </div>
                             <div class="flex items-center gap-1">
                                 <button onclick="adjustValue('moon', -1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">-</button>
@@ -211,9 +208,9 @@
 
                         <!-- 太阳 -->
                         <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 relative">
-                            <div class="flex items-center gap-2.5 min-w-[100px]">
-                                <span class="text-xl">☀️</span>
-                                <span class="text-sm font-bold text-orange-400">太阳将领</span>
+                            <div class="flex items-center gap-2 min-w-[100px]">
+                                <span class="text-lg">☀️</span>
+                                <span class="text-xs sm:text-sm font-bold text-orange-400">太阳将领</span>
                             </div>
                             <div class="flex items-center gap-1">
                                 <button onclick="adjustValue('sun', -1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">-</button>
@@ -224,9 +221,9 @@
 
                         <!-- S级 -->
                         <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 relative">
-                            <div class="flex items-center gap-2.5 min-w-[100px]">
-                                <span class="text-xl">🔥</span>
-                                <span class="text-sm font-bold text-red-400">S级将领</span>
+                            <div class="flex items-center gap-2 min-w-[100px]">
+                                <span class="text-lg">🔥</span>
+                                <span class="text-xs sm:text-sm font-bold text-red-400">S级将领</span>
                             </div>
                             <div class="flex items-center gap-1">
                                 <button onclick="adjustValue('srank', -1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">-</button>
@@ -237,14 +234,27 @@
 
                         <!-- SS级 -->
                         <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 relative">
-                            <div class="flex items-center gap-2.5 min-w-[100px]">
-                                <span class="text-xl">👑</span>
-                                <span class="text-sm font-bold text-yellow-400">SS级将领</span>
+                            <div class="flex items-center gap-2 min-w-[100px]">
+                                <span class="text-lg">👑</span>
+                                <span class="text-xs sm:text-sm font-bold text-yellow-400">SS级将领</span>
                             </div>
                             <div class="flex items-center gap-1">
                                 <button onclick="adjustValue('ssrank', -1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">-</button>
                                 <input type="number" id="input-ssrank" value="0" min="0" oninput="calculate()" class="w-16 sm:w-20 text-center bg-slate-950 border border-slate-700 rounded-lg py-1 text-yellow-400 font-bold focus:outline-none focus:border-yellow-500">
                                 <button onclick="adjustValue('ssrank', 1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">+</button>
+                            </div>
+                        </div>
+
+                        <!-- 进阶石 (新增) -->
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 relative">
+                            <div class="flex items-center gap-2 min-w-[100px]">
+                                <span class="text-lg">💎</span>
+                                <span class="text-xs sm:text-sm font-bold text-cyan-300">进阶石数量</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="adjustValue('stone', -5)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">-5</button>
+                                <input type="number" id="input-stone" value="0" min="0" oninput="calculate()" class="w-16 sm:w-20 text-center bg-slate-950 border border-cyan-600 rounded-lg py-1 text-cyan-300 font-bold focus:outline-none focus:border-cyan-400">
+                                <button onclick="adjustValue('stone', 5)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">+5</button>
                             </div>
                         </div>
                     </div>
@@ -283,9 +293,8 @@
             <!-- 右侧：计算结果展示 -->
             <div class="lg:col-span-7 space-y-6">
 
-                <!-- 功能一：最大化合成结果 -->
+                <!-- 功能一：最大化合成结果 & 进阶石需求 -->
                 <div class="glass-panel rounded-2xl p-5 border border-slate-700/60 shadow-xl relative overflow-hidden">
-                    <!-- 嵌入式背景巨型隐形水印 -->
                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.04]">
                         <span class="text-5xl sm:text-6xl font-black tracking-widest text-amber-300 -rotate-12">
                             3k887忆春风制作
@@ -297,51 +306,79 @@
                     </div>
 
                     <h2 class="text-lg font-bold flex items-center gap-2 text-slate-200 mb-4">
-                        <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> 当前可最大化合成
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> 当前库存理论最高合成
                     </h2>
 
-                    <!-- 阶梯合成示意图/卡片展示 -->
-                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mb-5 relative z-10">
-                        <!-- SS级结果 -->
-                        <div class="p-3 rounded-xl bg-slate-900/80 border border-yellow-500/30 text-center flex flex-col items-center justify-center relative">
-                            <span class="text-2xl mb-1">👑</span>
-                            <span class="text-xs text-slate-400 font-medium">最终SS级</span>
-                            <span id="res-synth-ssrank" class="text-xl font-black text-yellow-400 mt-1">0</span>
+                    <!-- 阶梯合成卡片展示 -->
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mb-4 relative z-10">
+                        <div class="p-3 rounded-xl bg-slate-900/80 border border-yellow-500/30 text-center flex flex-col items-center justify-center">
+                            <span class="text-xl mb-0.5">👑</span>
+                            <span class="text-[11px] text-slate-400">最终SS级</span>
+                            <span id="res-synth-ssrank" class="text-xl font-black text-yellow-400 mt-0.5">0</span>
                         </div>
-                        <!-- S级余数 -->
                         <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800 text-center flex flex-col items-center justify-center">
-                            <span class="text-2xl mb-1">🔥</span>
-                            <span class="text-xs text-slate-400 font-medium">剩余S级</span>
-                            <span id="res-synth-srank" class="text-lg font-bold text-red-400 mt-1">0</span>
+                            <span class="text-xl mb-0.5">🔥</span>
+                            <span class="text-[11px] text-slate-400">剩余S级</span>
+                            <span id="res-synth-srank" class="text-lg font-bold text-red-400 mt-0.5">0</span>
                         </div>
-                        <!-- 太阳余数 -->
                         <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800 text-center flex flex-col items-center justify-center">
-                            <span class="text-2xl mb-1">☀️</span>
-                            <span class="text-xs text-slate-400 font-medium">剩余太阳</span>
-                            <span id="res-synth-sun" class="text-lg font-bold text-orange-400 mt-1">0</span>
+                            <span class="text-xl mb-0.5">☀️</span>
+                            <span class="text-[11px] text-slate-400">剩余太阳</span>
+                            <span id="res-synth-sun" class="text-lg font-bold text-orange-400 mt-0.5">0</span>
                         </div>
-                        <!-- 月亮余数 -->
                         <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800 text-center flex flex-col items-center justify-center">
-                            <span class="text-2xl mb-1">🌙</span>
-                            <span class="text-xs text-slate-400 font-medium">剩余月亮</span>
-                            <span id="res-synth-moon" class="text-lg font-bold text-purple-400 mt-1">0</span>
+                            <span class="text-xl mb-0.5">🌙</span>
+                            <span class="text-[11px] text-slate-400">剩余月亮</span>
+                            <span id="res-synth-moon" class="text-lg font-bold text-purple-400 mt-0.5">0</span>
                         </div>
-                        <!-- 星星余数 -->
                         <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800 text-center flex flex-col items-center justify-center col-span-2 sm:col-span-1">
-                            <span class="text-2xl mb-1">⭐</span>
-                            <span class="text-xs text-slate-400 font-medium">剩余星星</span>
-                            <span id="res-synth-star" class="text-lg font-bold text-sky-400 mt-1">0</span>
+                            <span class="text-xl mb-0.5">⭐</span>
+                            <span class="text-[11px] text-slate-400">剩余星星</span>
+                            <span id="res-synth-star" class="text-lg font-bold text-sky-400 mt-0.5">0</span>
                         </div>
                     </div>
 
-                    <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200/90 flex justify-between items-center relative z-10">
+                    <!-- 进阶石消耗与实际受限推导提示 -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3 relative z-10">
+                        <div class="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-xs text-slate-300 space-y-1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-cyan-400 font-semibold"><i class="fa-solid fa-gem mr-1"></i>理论合成所需进阶石：</span>
+                                <strong id="res-synth-need-stones" class="text-cyan-300 font-black text-sm">0 个</strong>
+                            </div>
+                            <div class="flex justify-between items-center text-slate-400 text-[11px]">
+                                <span>现有进阶石储备：</span>
+                                <span id="res-synth-have-stones" class="font-bold text-slate-200">0 个</span>
+                            </div>
+                        </div>
+
+                        <div id="stone-status-card" class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs flex flex-col justify-center">
+                            <div class="flex items-center gap-1.5 font-bold" id="stone-status-title">
+                                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                                <span>进阶石储备充足</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-0.5" id="stone-status-desc">能顺畅完成所有将领进阶</p>
+                        </div>
+                    </div>
+
+                    <!-- 受限实际合成结果展示条 (仅在进阶石不够时触发显示) -->
+                    <div id="limited-synth-box" class="hidden p-3 rounded-xl bg-amber-950/40 border border-amber-500/30 text-xs text-amber-200 space-y-1 relative z-10">
+                        <div class="font-bold flex items-center gap-1.5 text-amber-400">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>进阶石上限卡住！实际仅能合成：</span>
+                        </div>
+                        <p class="text-slate-300 font-medium" id="limited-synth-text">
+                            用完当前 0 个进阶石后，最高完成合成：-
+                        </p>
+                    </div>
+
+                    <div class="mt-3 p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 flex justify-between items-center relative z-10">
                         <span>当前所有库存折算为基础<strong class="text-amber-400">星星将领</strong>总量：</span>
-                        <span id="res-total-stars" class="text-base font-black text-amber-400">0 个</span>
+                        <span id="res-total-stars" class="text-sm font-black text-amber-400">0 个</span>
                     </div>
                     <div class="card-corner-watermark">3k887忆春风制作</div>
                 </div>
 
-                <!-- 功能二：目标缺口分析 -->
+                <!-- 功能二：目标缺口分析 (包含将领与进阶石) -->
                 <div class="glass-panel rounded-2xl p-5 border border-slate-700/60 shadow-xl space-y-4 relative overflow-hidden">
                     <h2 class="text-lg font-bold flex items-center gap-2 text-slate-200">
                         <i class="fa-solid fa-calculator text-amber-400"></i> 目标缺口与补充建议
@@ -352,26 +389,32 @@
                         <div id="status-icon" class="text-2xl">💡</div>
                         <div>
                             <div id="status-title" class="font-bold text-sm text-slate-200">请输入数据</div>
-                            <div id="status-desc" class="text-xs text-slate-400">设定目标并输入现有将领以查看计算结果</div>
+                            <div id="status-desc" class="text-xs text-slate-400">设定目标并输入现有资源以查看缺口分析</div>
                         </div>
                     </div>
 
-                    <!-- 详细数据对比 -->
+                    <!-- 目标分析数据对比 (将领 + 进阶石) -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs relative z-10">
                         <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
-                            <div class="text-slate-400">目标所需基础星星：</div>
-                            <div id="res-target-need-stars" class="text-lg font-bold text-slate-200">0 个</div>
+                            <div class="text-slate-400">达成目标需要将领/进阶石：</div>
+                            <div class="text-slate-200 font-bold">
+                                ⭐ 星星: <span id="res-target-need-stars" class="text-amber-400">0</span> 个 | 
+                                💎 石头: <span id="res-target-need-stones" class="text-cyan-400">0</span> 个
+                            </div>
                         </div>
                         <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
-                            <div class="text-slate-400">现有库存折算星星：</div>
-                            <div id="res-current-have-stars" class="text-lg font-bold text-slate-200">0 个</div>
+                            <div class="text-slate-400">尚缺资源 (将领缺口 / 进阶石缺口)：</div>
+                            <div class="text-slate-200 font-bold">
+                                缺星: <span id="res-gap-stars-summary" class="text-red-400">0</span> | 
+                                缺石头: <span id="res-gap-stones-summary" class="text-red-400">0</span>
+                            </div>
                         </div>
                     </div>
 
                     <!-- 缺口补充建议方案 -->
                     <div id="gap-suggestion-box" class="pt-2 relative z-10">
                         <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5 flex justify-between items-center">
-                            <span>若直接补充特定等级（还差）：</span>
+                            <span>若直接补充特定等级将领（尚差）：</span>
                             <span class="text-[10px] text-amber-500/50 font-normal">水印防伪：3k887忆春风制作</span>
                         </h3>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -396,11 +439,16 @@
                     <div class="card-corner-watermark">3k887忆春风制作</div>
                 </div>
 
-                <!-- 进阶转换比例看板 -->
-                <div class="glass-panel rounded-2xl p-4 border border-slate-700/60 text-xs text-slate-400 flex flex-wrap justify-between items-center gap-2 relative">
-                    <span class="font-bold text-slate-300">当前汇率：</span>
-                    <span id="rate-info">1 月亮 = 6 星星 | 1 太阳 = 36 星星 | 1 S级 = 216 星星 | 1 SS级 = 1296 星星</span>
-                    <span class="text-amber-500/40 font-bold ml-auto text-[11px]">3k887忆春风制作</span>
+                <!-- 进阶石与合成比例规则说明 -->
+                <div class="glass-panel rounded-2xl p-4 border border-slate-700/60 text-xs text-slate-400 space-y-1 relative">
+                    <div class="flex flex-wrap justify-between items-center gap-2 font-semibold text-slate-300">
+                        <span>💎 进阶石消耗规则：</span>
+                        <span>星 $\rightarrow$ 月(1) | 月 $\rightarrow$ 阳(2) | 阳 $\rightarrow$ S(5) | S $\rightarrow$ SS(10)</span>
+                    </div>
+                    <div class="flex flex-wrap justify-between items-center gap-2 text-[11px] pt-1 border-t border-slate-800">
+                        <span id="rate-info">1月亮=6星 | 1太阳=36星 | 1S级=216星 | 1SS级=1296星</span>
+                        <span class="text-amber-500/40 font-bold ml-auto">3k887忆春风制作</span>
+                    </div>
                 </div>
 
             </div>
@@ -413,7 +461,7 @@
                 <span>将领合成计算机 &bull; 3k887忆春风制作</span>
             </div>
             <p class="text-slate-600 text-[11px]">
-                全自动游戏将领进阶计算 &bull; 水印防伪保护 &bull; 适配常规(6合1)及限时活动(5合1)
+                全自动将领进阶与进阶石精算 &bull; 支持常规(6合1)及活动(5合1)模式
             </p>
         </footer>
     </div>
@@ -423,7 +471,6 @@
         function generateWatermarks() {
             const container = document.getElementById('watermark-container');
             const watermarkText = "3k887忆春风制作";
-            // 填充足够的平铺文本
             let html = '';
             for (let i = 0; i < 90; i++) {
                 html += `<div class="watermark-item">${watermarkText}</div>`;
@@ -431,10 +478,8 @@
             container.innerHTML = html;
         }
 
-        // 核心数据模型
         let currentMode = 'normal'; // 'normal' (6合1) 或 'event' (5合1)
 
-        // 等级名称映射与顺序
         const LEVELS = ['star', 'moon', 'sun', 'srank', 'ssrank'];
         const LEVEL_NAMES = {
             star: '星星将领',
@@ -442,6 +487,14 @@
             sun: '太阳将领',
             srank: 'S级将领',
             ssrank: 'SS级将领'
+        };
+
+        // 进阶石消耗常量表 (单次合成一个高阶消耗的进阶石)
+        const STONE_COSTS = {
+            moon: 1,   // 星 -> 月
+            sun: 2,    // 月 -> 阳
+            srank: 5,  // 阳 -> S
+            ssrank: 10 // S -> SS
         };
 
         // 切换模式
@@ -466,7 +519,6 @@
             calculate();
         }
 
-        // 快捷调整库存输入
         function adjustValue(id, delta) {
             const input = document.getElementById(`input-${id}`);
             let val = parseInt(input.value) || 0;
@@ -475,7 +527,6 @@
             calculate();
         }
 
-        // 快捷调整目标数量
         function adjustTargetCount(delta) {
             const input = document.getElementById('target-count');
             let val = parseInt(input.value) || 1;
@@ -484,30 +535,28 @@
             calculate();
         }
 
-        // 清空数据
         function clearInventory() {
             LEVELS.forEach(lvl => {
                 document.getElementById(`input-${lvl}`).value = 0;
             });
+            document.getElementById('input-stone').value = 0;
             calculate();
         }
 
-        // 填充测试示例数据
         function fillDemoData() {
-            document.getElementById('input-star').value = 14;
-            document.getElementById('input-moon').value = 7;
-            document.getElementById('input-sun').value = 3;
-            document.getElementById('input-srank').value = 1;
+            document.getElementById('input-star').value = 28;
+            document.getElementById('input-moon').value = 8;
+            document.getElementById('input-sun').value = 4;
+            document.getElementById('input-srank').value = 2;
             document.getElementById('input-ssrank').value = 0;
+            document.getElementById('input-stone').value = 25;
             calculate();
         }
 
-        // 获得当前模式下的合成倍率 (1个高阶需要的低阶数量)
         function getRatio() {
             return currentMode === 'event' ? 5 : 6;
         }
 
-        // 计算一个特定等级相当于多少个基础“星星”
         function getStarEquivalent(level, ratio) {
             switch(level) {
                 case 'star': return 1;
@@ -519,7 +568,17 @@
             }
         }
 
-        // 核心计算逻辑
+        // 递归/计算合成某目标等级需消耗的【总进阶石】
+        function getStonesNeededForSingleTarget(level, ratio) {
+            if (level === 'star') return 0;
+            if (level === 'moon') return STONE_COSTS.moon; // 1
+            if (level === 'sun') return ratio * getStonesNeededForSingleTarget('moon', ratio) + STONE_COSTS.sun; // ratio * 1 + 2
+            if (level === 'srank') return ratio * getStonesNeededForSingleTarget('sun', ratio) + STONE_COSTS.srank; 
+            if (level === 'ssrank') return ratio * getStonesNeededForSingleTarget('srank', ratio) + STONE_COSTS.ssrank;
+            return 0;
+        }
+
+        // 核心计算与结果分析
         function calculate() {
             const ratio = getRatio();
 
@@ -528,6 +587,7 @@
             LEVELS.forEach(lvl => {
                 inventory[lvl] = Math.max(0, parseInt(document.getElementById(`input-${lvl}`).value) || 0);
             });
+            const haveStones = Math.max(0, parseInt(document.getElementById('input-stone').value) || 0);
 
             const targetLevel = document.getElementById('target-level').value;
             const targetCount = Math.max(1, parseInt(document.getElementById('target-count').value) || 1);
@@ -541,29 +601,91 @@
                 `1月亮=${starPerMoon}星 | 1太阳=${starPerSun}星 | 1S级=${starPerS}星 | 1SS级=${starPerSS}星`;
 
             // -------------------------------------------------------------
-            // 功能一：全量向上合成计算 (从低级逐级向高级进位)
+            // 功能一：全量向上最大化合成推导（包含理论与受限实际）
             // -------------------------------------------------------------
-            let tempStar = inventory.star;
-            let tempMoon = inventory.moon + Math.floor(tempStar / ratio);
-            let remStar = tempStar % ratio;
+            let starFromBottom = inventory.star;
+            
+            // 1.1 计算每层理论合成的新增数量与余数
+            let newMoonCreated = Math.floor(starFromBottom / ratio);
+            let remStar = starFromBottom % ratio;
 
-            let tempSun = inventory.sun + Math.floor(tempMoon / ratio);
-            let remMoon = tempMoon % ratio;
+            let totalMoonAvailable = inventory.moon + newMoonCreated;
+            let newSunCreated = Math.floor(totalMoonAvailable / ratio);
+            let remMoon = totalMoonAvailable % ratio;
 
-            let tempS = inventory.srank + Math.floor(tempSun / ratio);
-            let remSun = tempSun % ratio;
+            let totalSunAvailable = inventory.sun + newSunCreated;
+            let newSCreated = Math.floor(totalSunAvailable / ratio);
+            let remSun = totalSunAvailable % ratio;
 
-            let finalSS = inventory.ssrank + Math.floor(tempS / ratio);
-            let remS = tempS % ratio;
+            let totalSAvailable = inventory.srank + newSCreated;
+            let newSSCreated = Math.floor(totalSAvailable / ratio);
+            let remS = totalSAvailable % ratio;
 
-            // 渲染最大化合成结果
+            let finalSS = inventory.ssrank + newSSCreated;
+
+            // 1.2 计算理论最大合成路径所需要的总进阶石
+            const stonesForMoon = newMoonCreated * STONE_COSTS.moon;
+            const stonesForSun = newSunCreated * STONE_COSTS.sun;
+            const stonesForS = newSCreated * STONE_COSTS.srank;
+            const stonesForSS = newSSCreated * STONE_COSTS.ssrank;
+
+            const totalStonesNeededTheoretical = stonesForMoon + stonesForSun + stonesForS + stonesForSS;
+
+            // 渲染理论最大合成结果
             document.getElementById('res-synth-ssrank').innerText = finalSS;
             document.getElementById('res-synth-srank').innerText = remS;
             document.getElementById('res-synth-sun').innerText = remSun;
             document.getElementById('res-synth-moon').innerText = remMoon;
             document.getElementById('res-synth-star').innerText = remStar;
 
-            // 计算所有库存的总星星当量
+            document.getElementById('res-synth-need-stones').innerText = `${totalStonesNeededTheoretical.toLocaleString()} 个`;
+            document.getElementById('res-synth-have-stones').innerText = `${haveStones.toLocaleString()} 个`;
+
+            // 进阶石状态对比展示
+            const stoneCard = document.getElementById('stone-status-card');
+            const stoneTitle = document.getElementById('stone-status-title');
+            const stoneDesc = document.getElementById('stone-status-desc');
+            const limitedBox = document.getElementById('limited-synth-box');
+
+            if (haveStones >= totalStonesNeededTheoretical) {
+                stoneCard.className = "p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-xs flex flex-col justify-center";
+                stoneTitle.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i><span class="text-emerald-300">进阶石储备充足</span>`;
+                stoneDesc.innerText = `完全满足理论合成（余 ${haveStones - totalStonesNeededTheoretical} 石）`;
+                limitedBox.classList.add('hidden');
+            } else {
+                const stoneGap = totalStonesNeededTheoretical - haveStones;
+                stoneCard.className = "p-3 rounded-xl bg-red-950/40 border border-red-500/30 text-xs flex flex-col justify-center";
+                stoneTitle.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-400"></i><span class="text-red-300">进阶石短缺 ${stoneGap} 个</span>`;
+                stoneDesc.innerText = `需 ${totalStonesNeededTheoretical} 个，还差 ${stoneGap} 个`;
+
+                // 模拟在“有限进阶石”约束下的按优先级合成 (低阶升高阶优先)
+                limitedBox.classList.remove('hidden');
+                let budgetStones = haveStones;
+
+                let actNewMoon = Math.min(newMoonCreated, Math.floor(budgetStones / STONE_COSTS.moon));
+                budgetStones -= actNewMoon * STONE_COSTS.moon;
+
+                let actTotalMoon = inventory.moon + actNewMoon;
+                let actPossibleSun = Math.floor(actTotalMoon / ratio);
+                let actNewSun = Math.min(actPossibleSun, Math.floor(budgetStones / STONE_COSTS.sun));
+                budgetStones -= actNewSun * STONE_COSTS.sun;
+
+                let actTotalSun = inventory.sun + actNewSun;
+                let actPossibleS = Math.floor(actTotalSun / ratio);
+                let actNewS = Math.min(actPossibleS, Math.floor(budgetStones / STONE_COSTS.srank));
+                budgetStones -= actNewS * STONE_COSTS.srank;
+
+                let actTotalS = inventory.srank + actNewS;
+                let actPossibleSS = Math.floor(actTotalS / ratio);
+                let actNewSS = Math.min(actPossibleSS, Math.floor(budgetStones / STONE_COSTS.ssrank));
+
+                let actFinalSS = inventory.ssrank + actNewSS;
+
+                document.getElementById('limited-synth-text').innerText = 
+                    `在已有 ${haveStones} 个进阶石限制下，最高可得到 ${actFinalSS} 个 SS级将领。`;
+            }
+
+            // 总折算星星数
             let totalStarsHave = 0;
             LEVELS.forEach(lvl => {
                 totalStarsHave += inventory[lvl] * getStarEquivalent(lvl, ratio);
@@ -571,65 +693,67 @@
             document.getElementById('res-total-stars').innerText = `${totalStarsHave.toLocaleString()} 个`;
 
             // -------------------------------------------------------------
-            // 功能二：目标缺口计算与推导
+            // 功能二：指定目标将领与进阶石缺口计算
             // -------------------------------------------------------------
             const singleTargetStars = getStarEquivalent(targetLevel, ratio);
-            const totalTargetStars = singleTargetStars * targetCount;
+            const totalTargetStarsNeeded = singleTargetStars * targetCount;
 
-            document.getElementById('res-target-need-stars').innerText = `${totalTargetStars.toLocaleString()} 个`;
-            document.getElementById('res-current-have-stars').innerText = `${totalStarsHave.toLocaleString()} 个`;
+            // 目标的进阶石计算：需要考虑目标直接合成路径上的消耗
+            const singleTargetStoneCost = getStonesNeededForSingleTarget(targetLevel, ratio);
+            const totalTargetStonesNeeded = singleTargetStoneCost * targetCount;
+
+            document.getElementById('res-target-need-stars').innerText = `${totalTargetStarsNeeded.toLocaleString()}`;
+            document.getElementById('res-target-need-stones').innerText = `${totalTargetStonesNeeded.toLocaleString()}`;
 
             const statusBanner = document.getElementById('status-banner');
             const statusIcon = document.getElementById('status-icon');
             const statusTitle = document.getElementById('status-title');
             const statusDesc = document.getElementById('status-desc');
-
             const gapBox = document.getElementById('gap-suggestion-box');
 
-            if (totalStarsHave >= totalTargetStars) {
-                // 库存充足
-                const extraStars = totalStarsHave - totalTargetStars;
-                const extraTargets = Math.floor(extraStars / singleTargetStars);
+            const starDeficit = Math.max(0, totalTargetStarsNeeded - totalStarsHave);
+            const stoneDeficit = Math.max(0, totalTargetStonesNeeded - haveStones);
 
+            document.getElementById('res-gap-stars-summary').innerText = starDeficit > 0 ? `${starDeficit.toLocaleString()}个` : '足够';
+            document.getElementById('res-gap-stones-summary').innerText = stoneDeficit > 0 ? `${stoneDeficit.toLocaleString()}个` : '足够';
+
+            if (starDeficit === 0 && stoneDeficit === 0) {
+                // 将领和进阶石都完全足够
                 statusBanner.className = "p-4 rounded-xl bg-emerald-950/60 border border-emerald-500/40 flex items-center gap-3 relative z-10";
                 statusIcon.innerText = "🎉";
                 statusTitle.className = "font-bold text-sm text-emerald-300";
-                statusTitle.innerText = "库存充足！完全可以满足需求";
-                
-                if (extraTargets > 0) {
-                    statusDesc.innerText = `完成目标后，多余的资源还可以再额外合成 ${extraTargets} 个 ${LEVEL_NAMES[targetLevel]}（剩余折算 ${extraStars} 颗星）。`;
-                } else {
-                    statusDesc.innerText = `当前资源刚好满足目标，余下折算相当于 ${extraStars} 颗星星。`;
-                }
+                statusTitle.innerText = "恭喜！将领与进阶石均完全满足目标要求";
+                statusDesc.innerText = `拥有折算 ${totalStarsHave} 颗星 (需 ${totalTargetStarsNeeded})，进阶石 ${haveStones} 个 (需 ${totalTargetStonesNeeded})。`;
 
-                // 清空或隐去缺口面板
                 document.getElementById('gap-star').innerText = "0 个";
                 document.getElementById('gap-moon').innerText = "0 个";
                 document.getElementById('gap-sun').innerText = "0 个";
                 document.getElementById('gap-srank').innerText = "0 个";
                 gapBox.classList.add('opacity-40');
             } else {
-                // 库存不够，计算缺口
+                // 存在将领或进阶石缺口
                 gapBox.classList.remove('opacity-40');
-                const neededStars = totalTargetStars - totalStarsHave;
-
                 statusBanner.className = "p-4 rounded-xl bg-red-950/50 border border-red-500/40 flex items-center gap-3 relative z-10";
                 statusIcon.innerText = "⚠️";
                 statusTitle.className = "font-bold text-sm text-red-300";
-                statusTitle.innerText = `还差 ${neededStars.toLocaleString()} 个基础星星将领`;
-                statusDesc.innerText = `当前已有资源可折合 ${(totalStarsHave/singleTargetStars).toFixed(2)} 个目标，进度: ${((totalStarsHave/totalTargetStars)*100).toFixed(1)}%`;
 
-                // 算各种补充方案缺口 (向上取整)
-                const gapStarNeeded = neededStars;
-                const gapMoonNeeded = Math.ceil(neededStars / getStarEquivalent('moon', ratio));
-                const gapSunNeeded = Math.ceil(neededStars / getStarEquivalent('sun', ratio));
-                const gapSNeeded = Math.ceil(neededStars / getStarEquivalent('srank', ratio));
+                let promptMsg = [];
+                if (starDeficit > 0) promptMsg.push(`尚缺 ${starDeficit.toLocaleString()} 基础星星将领`);
+                if (stoneDeficit > 0) promptMsg.push(`尚缺 ${stoneDeficit.toLocaleString()} 个进阶石`);
+
+                statusTitle.innerText = promptMsg.join('；');
+                statusDesc.innerText = `目前将领进度: ${((totalStarsHave/totalTargetStarsNeeded)*100).toFixed(1)}% | 进阶石进度: ${((haveStones/Math.max(1, totalTargetStonesNeeded))*100).toFixed(1)}%`;
+
+                // 计算将领层面补充建议
+                const gapStarNeeded = starDeficit;
+                const gapMoonNeeded = Math.ceil(starDeficit / getStarEquivalent('moon', ratio));
+                const gapSunNeeded = Math.ceil(starDeficit / getStarEquivalent('sun', ratio));
+                const gapSNeeded = Math.ceil(starDeficit / getStarEquivalent('srank', ratio));
 
                 document.getElementById('gap-star').innerText = `${gapStarNeeded.toLocaleString()} 个`;
                 document.getElementById('gap-moon').innerText = `${gapMoonNeeded.toLocaleString()} 个`;
                 document.getElementById('gap-sun').innerText = `${gapSunNeeded.toLocaleString()} 个`;
 
-                // 如果目标本身就是SS级，显示S级层级的建议
                 const sRankContainer = document.getElementById('gap-srank-container');
                 if (targetLevel === 'ssrank') {
                     sRankContainer.style.display = 'block';
@@ -640,7 +764,6 @@
             }
         }
 
-        // 页面加载完成后自动生成水印并计算一次
         window.onload = function() {
             generateWatermarks();
             calculate();
