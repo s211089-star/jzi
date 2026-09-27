@@ -3,775 +3,564 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>遺跡載重匹配與計算工具</title>
+    <title>将领合成计算机</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'sans-serif'],
+                    },
+                    colors: {
+                        game: {
+                            bg: '#0f172a',
+                            card: '#1e293b',
+                            cardBorder: '#334155',
+                            gold: '#fbbf24',
+                            goldHover: '#f59e0b',
+                            star: '#38bdf8',
+                            moon: '#c084fc',
+                            sun: '#f97316',
+                            srank: '#ef4444',
+                            ssrank: '#eab308'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --bg-primary: #0d1117;
-            --bg-card: #161b22;
-            --bg-card-hover: #1f242d;
-            --border-color: #30363d;
-            --text-primary: #f0f6fc;
-            --text-secondary: #8b949e;
-            --accent-gold: #f1e05a;
-            --accent-cyan: #38bdf8;
-            --accent-purple: #c084fc;
-            --accent-green: #4ade80;
-            --accent-orange: #fb923c;
-            --accent-pink: #f472b6;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-
         body {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            padding: 16px;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            position: relative;
+            background-color: #0b0f19;
+            background-image: 
+                radial-gradient(at 20% 20%, rgba(251, 191, 36, 0.05) 0px, transparent 50%),
+                radial-gradient(at 80% 80%, rgba(99, 102, 241, 0.08) 0px, transparent 50%);
+            color: #f1f5f9;
         }
 
-        /* 全屏平鋪文字水印效果 */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 9999;
-            opacity: 0.06;
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='250' height='150'><text x='20' y='80' fill='%23ffffff' font-size='16' font-family='sans-serif' transform='rotate(-25 100 80)'>3k887忆春风出品</text></svg>");
-            background-repeat: repeat;
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #fef08a 0%, #f59e0b 50%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .container {
-            width: 100%;
-            max-width: 1000px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            position: relative;
-            z-index: 1;
+        .gold-border-glow {
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+            border: 1px solid rgba(245, 158, 11, 0.4);
         }
 
-        header {
-            text-align: center;
-            padding: 16px 0;
-            border-bottom: 1px solid var(--border-color);
+        .active-event-glow {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+            border-color: rgba(239, 68, 68, 0.6);
         }
 
-        header h1 {
-            font-size: 1.6rem;
-            color: var(--accent-gold);
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        header p {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            margin-top: 6px;
+        /* 隐藏数字输入框的箭头 */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
-
-        /* Relic Type Selection Cards */
-        .relic-selector {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-        }
-
-        .relic-card {
-            background: var(--bg-card);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 14px;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .relic-card:hover {
-            border-color: var(--accent-cyan);
-            transform: translateY(-2px);
-        }
-
-        .relic-card.active {
-            border-color: var(--accent-gold);
-            background: linear-gradient(145deg, rgba(241, 224, 90, 0.08), rgba(22, 27, 34, 0.95));
-            box-shadow: 0 0 15px rgba(241, 224, 90, 0.2);
-        }
-
-        .relic-card .title {
-            font-weight: bold;
-            font-size: 1.1rem;
-            margin-bottom: 4px;
-        }
-
-        .relic-card .rate {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        .relic-card .badge {
-            font-size: 0.75rem;
-            padding: 2px 8px;
-            border-radius: 10px;
-            display: inline-block;
-            margin-top: 6px;
-            font-weight: 600;
-        }
-
-        /* Specific theme accents for relic types */
-        .relic-card[data-type="small"] .title { color: var(--accent-green); }
-        .relic-card[data-type="small"] .badge { background: rgba(74, 222, 128, 0.15); color: var(--accent-green); }
-
-        .relic-card[data-type="medium"] .title { color: var(--accent-cyan); }
-        .relic-card[data-type="medium"] .badge { background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); }
-
-        .relic-card[data-type="large"] .title { color: var(--accent-purple); }
-        .relic-card[data-type="large"] .badge { background: rgba(192, 132, 252, 0.15); color: var(--accent-purple); }
-
-        .relic-card[data-type="mega"] .title { color: var(--accent-orange); }
-        .relic-card[data-type="mega"] .badge { background: rgba(251, 146, 60, 0.15); color: var(--accent-orange); }
-
-        /* Navigation Tabs */
-        .nav-tabs {
-            display: flex;
-            background: var(--bg-card);
-            padding: 4px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 10px;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-
-        .tab-btn.active {
-            background: var(--border-color);
-            color: var(--accent-gold);
-        }
-
-        /* Main Panel / Section Box */
-        .panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-        }
-
-        .panel-title {
-            font-size: 1.1rem;
-            color: var(--accent-cyan);
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-bottom: 1px dashed var(--border-color);
-            padding-bottom: 8px;
-        }
-
-        /* Input Control Group */
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .input-label {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        .input-wrapper {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .custom-input {
-            flex: 1;
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px 16px;
-            color: var(--text-primary);
-            font-size: 1.2rem;
-            font-weight: bold;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .custom-input:focus {
-            border-color: var(--accent-gold);
-        }
-
-        .unit {
-            font-weight: bold;
-            color: var(--accent-gold);
-            font-size: 1.1rem;
-        }
-
-        /* Quick Add Buttons */
-        .quick-btns {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 4px;
-        }
-
-        .btn-chip {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .btn-chip:hover {
-            border-color: var(--accent-cyan);
-            color: var(--text-primary);
-        }
-
-        .btn-chip.clear {
-            border-color: rgba(244, 114, 182, 0.4);
-            color: var(--accent-pink);
-        }
-
-        /* Output Cards Display */
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 14px;
-            margin-top: 16px;
-        }
-
-        .res-card {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .res-card .label {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        .res-card .val {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: var(--text-primary);
-        }
-
-        .res-card .sub {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        /* Progress Bar Section for Next Node */
-        .progress-box {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 16px;
-            margin-top: 16px;
-        }
-
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-            margin-bottom: 8px;
-        }
-
-        .progress-track {
-            width: 100%;
-            height: 12px;
-            background: #21262d;
-            border-radius: 6px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-gold));
-            width: 0%;
-            transition: width 0.4s ease;
-            border-radius: 6px;
-        }
-
-        .progress-footer {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-top: 6px;
-        }
-
-        .gap-highlight {
-            color: var(--accent-pink);
-            font-weight: bold;
-        }
-
-        /* Table Section */
-        .table-container {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-top: 10px;
-            position: relative;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            text-align: left;
-        }
-
-        th {
-            background: var(--bg-primary);
-            position: sticky;
-            top: 0;
-            color: var(--text-secondary);
-            padding: 10px 12px;
-            font-weight: 600;
-            border-bottom: 1px solid var(--border-color);
-            z-index: 10;
-        }
-
-        td {
-            padding: 8px 12px;
-            border-bottom: 1px solid rgba(48, 54, 61, 0.5);
-            color: var(--text-primary);
-        }
-
-        tr:hover {
-            background: var(--bg-card-hover);
-        }
-
-        tr.active-row {
-            background: rgba(241, 224, 90, 0.18) !important;
-            border-left: 4px solid var(--accent-gold);
-            font-weight: bold;
-        }
-
-        tr.target-row {
-            background: rgba(56, 189, 248, 0.18) !important;
-            border-left: 4px solid var(--accent-cyan);
-            font-weight: bold;
-        }
-
-        tr.next-row {
-            background: rgba(56, 189, 248, 0.08);
-            border-left: 3px dashed var(--accent-cyan);
-        }
-
-        /* Utility Hidden Class */
-        .hidden {
-            display: none !important;
+        input[type=number] {
+            -moz-appearance: textfield;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>🏛️ 遺跡載重匹配與計算工具</h1>
-            <p>實時精準計算遺跡掛機載重需求、掛機時長及下一節點階梯差距（動態高亮與自動對齊）</p>
+<body class="min-h-screen py-6 px-3 sm:px-6 font-sans">
+    <div class="max-w-5xl mx-auto space-y-6">
+
+        <!-- 顶部 Header 标题与模式切换 -->
+        <header class="glass-panel rounded-2xl p-4 sm:p-6 text-center relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="relative z-10">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold mb-2">
+                    <i class="fa-solid fa-chess-king">
+                    </i> 手游辅助计算工具
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-black tracking-wide gold-gradient-text mb-2">
+                    将领合成计算机
+                </h1>
+                <p class="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto">
+                    精准计算库存转换率、目标阶梯缺口与最优合成路径
+                </p>
+
+                <!-- 模式切换开关 -->
+                <div class="mt-6 inline-flex p-1.5 rounded-xl bg-slate-900/80 border border-slate-700/80 relative">
+                    <button id="mode-normal-btn" onclick="setMode('normal')" class="relative z-10 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 text-white bg-slate-800 shadow-lg">
+                        <i class="fa-solid fa-scale-balanced text-slate-400"></i>
+                        常规模式 <span class="text-xs px-2 py-0.5 rounded bg-slate-700 text-amber-300">6 合 1</span>
+                    </button>
+                    <button id="mode-event-btn" onclick="setMode('event')" class="relative z-10 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-bolt text-red-400"></i>
+                        限时活动 <span class="text-xs px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800">5 合 1</span>
+                    </button>
+                </div>
+            </div>
         </header>
 
-        <!-- Relic Type Selection Header -->
-        <div class="relic-selector" id="relicSelector">
-            <div class="relic-card active" data-type="small">
-                <div class="title">小型遺跡</div>
-                <div class="rate">24,500 資源/分鐘</div>
-                <div class="badge">基礎級 (0.74M/30分)</div>
+        <!-- 主内容区域：两列布局（桌面端） -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- 左侧：输入面板 -->
+            <div class="lg:col-span-5 space-y-6">
+                <!-- 1. 当前库存输入 -->
+                <div class="glass-panel rounded-2xl p-5 border border-slate-700/60 shadow-xl">
+                    <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-700/50">
+                        <h2 class="text-lg font-bold flex items-center gap-2 text-amber-400">
+                            <i class="fa-solid fa-boxes-stacked"></i> 当前拥有的将领
+                        </h2>
+                        <div class="flex gap-2">
+                            <button onclick="fillDemoData()" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 transition">
+                                示例数据
+                            </button>
+                            <button onclick="clearInventory()" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-red-900/40 text-slate-300 hover:text-red-300 border border-slate-600 transition">
+                                清空
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 5个等级的输入框组 -->
+                    <div class="space-y-3" id="inventory-inputs">
+                        <!-- 由 JS 动态渲染或静态维护结构以提升可读性 -->
+                        <!-- 星星 -->
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                            <div class="flex items-center gap-2.5 min-w-[100px]">
+                                <span class="text-xl">⭐</span>
+                                <span class="text-sm font-bold text-sky-400">星星将领</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="adjustValue('star', -1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">-</button>
+                                <input type="number" id="input-star" value="0" min="0" oninput="calculate()" class="w-16 sm:w-20 text-center bg-slate-950 border border-slate-700 rounded-lg py-1 text-amber-400 font-bold focus:outline-none focus:border-amber-500">
+                                <button onclick="adjustValue('star', 1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">+</button>
+                            </div>
+                        </div>
+
+                        <!-- 月亮 -->
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                            <div class="flex items-center gap-2.5 min-w-[100px]">
+                                <span class="text-xl">🌙</span>
+                                <span class="text-sm font-bold text-purple-400">月亮将领</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="adjustValue('moon', -1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">-</button>
+                                <input type="number" id="input-moon" value="0" min="0" oninput="calculate()" class="w-16 sm:w-20 text-center bg-slate-950 border border-slate-700 rounded-lg py-1 text-purple-400 font-bold focus:outline-none focus:border-purple-500">
+                                <button onclick="adjustValue('moon', 1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">+</button>
+                            </div>
+                        </div>
+
+                        <!-- 太阳 -->
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                            <div class="flex items-center gap-2.5 min-w-[100px]">
+                                <span class="text-xl">☀️</span>
+                                <span class="text-sm font-bold text-orange-400">太阳将领</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="adjustValue('sun', -1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">-</button>
+                                <input type="number" id="input-sun" value="0" min="0" oninput="calculate()" class="w-16 sm:w-20 text-center bg-slate-950 border border-slate-700 rounded-lg py-1 text-orange-400 font-bold focus:outline-none focus:border-orange-500">
+                                <button onclick="adjustValue('sun', 1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">+</button>
+                            </div>
+                        </div>
+
+                        <!-- S级 -->
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                            <div class="flex items-center gap-2.5 min-w-[100px]">
+                                <span class="text-xl">🔥</span>
+                                <span class="text-sm font-bold text-red-400">S级将领</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="adjustValue('srank', -1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">-</button>
+                                <input type="number" id="input-srank" value="0" min="0" oninput="calculate()" class="w-16 sm:w-20 text-center bg-slate-950 border border-slate-700 rounded-lg py-1 text-red-400 font-bold focus:outline-none focus:border-red-500">
+                                <button onclick="adjustValue('srank', 1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">+</button>
+                            </div>
+                        </div>
+
+                        <!-- SS级 -->
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                            <div class="flex items-center gap-2.5 min-w-[100px]">
+                                <span class="text-xl">👑</span>
+                                <span class="text-sm font-bold text-yellow-400">SS级将领</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="adjustValue('ssrank', -1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">-</button>
+                                <input type="number" id="input-ssrank" value="0" min="0" oninput="calculate()" class="w-16 sm:w-20 text-center bg-slate-950 border border-slate-700 rounded-lg py-1 text-yellow-400 font-bold focus:outline-none focus:border-yellow-500">
+                                <button onclick="adjustValue('ssrank', 1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition active:scale-95">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 目标等级推导 -->
+                <div class="glass-panel rounded-2xl p-5 border border-slate-700/60 shadow-xl">
+                    <h2 class="text-lg font-bold flex items-center gap-2 text-amber-400 mb-4 pb-3 border-b border-slate-700/50">
+                        <i class="fa-solid fa-bullseye"></i> 想要合成的目标
+                    </h2>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">目标等级</label>
+                            <select id="target-level" onchange="calculate()" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm font-bold text-amber-300 focus:outline-none focus:border-amber-500">
+                                <option value="moon">🌙 月亮将领</option>
+                                <option value="sun">☀️ 太阳将领</option>
+                                <option value="srank">🔥 S级将领</option>
+                                <option value="ssrank" selected>👑 SS级将领</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">需求数量</label>
+                            <div class="flex items-center gap-1">
+                                <button onclick="adjustTargetCount(-1)" class="w-8 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center">-</button>
+                                <input type="number" id="target-count" value="1" min="1" oninput="calculate()" class="w-full text-center bg-slate-950 border border-slate-700 rounded-lg py-1.5 text-amber-400 font-bold focus:outline-none focus:border-amber-500">
+                                <button onclick="adjustTargetCount(1)" class="w-8 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="relic-card" data-type="medium">
-                <div class="title">中型遺跡</div>
-                <div class="rate">44,200 資源/分鐘</div>
-                <div class="badge">進階級 (1.33M/30分)</div>
-            </div>
-            <div class="relic-card" data-type="large">
-                <div class="title">大型遺跡</div>
-                <div class="rate">72,700 資源/分鐘</div>
-                <div class="badge">高級 (2.19M/30分)</div>
-            </div>
-            <div class="relic-card" data-type="mega">
-                <div class="title">巨型遺跡</div>
-                <div class="rate">118,000 資源/分鐘</div>
-                <div class="badge">史詩級 (3.54M/30分)</div>
+
+            <!-- 右侧：计算结果展示 -->
+            <div class="lg:col-span-7 space-y-6">
+
+                <!-- 功能一：最大化合成结果 -->
+                <div class="glass-panel rounded-2xl p-5 border border-slate-700/60 shadow-xl relative overflow-hidden">
+                    <div id="mode-badge" class="absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
+                        常规模式 (6合1)
+                    </div>
+
+                    <h2 class="text-lg font-bold flex items-center gap-2 text-slate-200 mb-4">
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> 当前可最大化合成
+                    </h2>
+
+                    <!-- 阶梯合成示意图/卡片展示 -->
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mb-5">
+                        <!-- SS级结果 -->
+                        <div class="p-3 rounded-xl bg-slate-900/80 border border-yellow-500/30 text-center flex flex-col items-center justify-center relative">
+                            <span class="text-2xl mb-1">👑</span>
+                            <span class="text-xs text-slate-400 font-medium">最终SS级</span>
+                            <span id="res-synth-ssrank" class="text-xl font-black text-yellow-400 mt-1">0</span>
+                        </div>
+                        <!-- S级余数 -->
+                        <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800 text-center flex flex-col items-center justify-center">
+                            <span class="text-2xl mb-1">🔥</span>
+                            <span class="text-xs text-slate-400 font-medium">剩余S级</span>
+                            <span id="res-synth-srank" class="text-lg font-bold text-red-400 mt-1">0</span>
+                        </div>
+                        <!-- 太阳余数 -->
+                        <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800 text-center flex flex-col items-center justify-center">
+                            <span class="text-2xl mb-1">☀️</span>
+                            <span class="text-xs text-slate-400 font-medium">剩余太阳</span>
+                            <span id="res-synth-sun" class="text-lg font-bold text-orange-400 mt-1">0</span>
+                        </div>
+                        <!-- 月亮余数 -->
+                        <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800 text-center flex flex-col items-center justify-center">
+                            <span class="text-2xl mb-1">🌙</span>
+                            <span class="text-xs text-slate-400 font-medium">剩余月亮</span>
+                            <span id="res-synth-moon" class="text-lg font-bold text-purple-400 mt-1">0</span>
+                        </div>
+                        <!-- 星星余数 -->
+                        <div class="p-3 rounded-xl bg-slate-900/50 border border-slate-800 text-center flex flex-col items-center justify-center col-span-2 sm:col-span-1">
+                            <span class="text-2xl mb-1">⭐</span>
+                            <span class="text-xs text-slate-400 font-medium">剩余星星</span>
+                            <span id="res-synth-star" class="text-lg font-bold text-sky-400 mt-1">0</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200/90 flex justify-between items-center">
+                        <span>当前所有库存折算为基础<strong class="text-amber-400">星星将领</strong>总量：</span>
+                        <span id="res-total-stars" class="text-base font-black text-amber-400">0 个</span>
+                    </div>
+                </div>
+
+                <!-- 功能二：目标缺口分析 -->
+                <div class="glass-panel rounded-2xl p-5 border border-slate-700/60 shadow-xl space-y-4">
+                    <h2 class="text-lg font-bold flex items-center gap-2 text-slate-200">
+                        <i class="fa-solid fa-calculator text-amber-400"></i> 目标缺口与补充建议
+                    </h2>
+
+                    <!-- 状态提示条 -->
+                    <div id="status-banner" class="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3">
+                        <div id="status-icon" class="text-2xl">💡</div>
+                        <div>
+                            <div id="status-title" class="font-bold text-sm text-slate-200">请输入数据</div>
+                            <div id="status-desc" class="text-xs text-slate-400">设定目标并输入现有将领以查看计算结果</div>
+                        </div>
+                    </div>
+
+                    <!-- 详细数据对比 -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
+                            <div class="text-slate-400">目标所需基础星星：</div>
+                            <div id="res-target-need-stars" class="text-lg font-bold text-slate-200">0 个</div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
+                            <div class="text-slate-400">现有库存折算星星：</div>
+                            <div id="res-current-have-stars" class="text-lg font-bold text-slate-200">0 个</div>
+                        </div>
+                    </div>
+
+                    <!-- 缺口补充建议方案 -->
+                    <div id="gap-suggestion-box" class="pt-2">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">
+                            若直接补充特定等级（还差）：
+                        </h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                            <div class="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80 text-center">
+                                <div class="text-xs text-slate-400 mb-1">⭐ 星星</div>
+                                <div id="gap-star" class="font-bold text-sky-400">0 个</div>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80 text-center">
+                                <div class="text-xs text-slate-400 mb-1">🌙 月亮</div>
+                                <div id="gap-moon" class="font-bold text-purple-400">0 个</div>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80 text-center">
+                                <div class="text-xs text-slate-400 mb-1">☀️ 太阳</div>
+                                <div id="gap-sun" class="font-bold text-orange-400">0 个</div>
+                            </div>
+                            <div id="gap-srank-container" class="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80 text-center">
+                                <div class="text-xs text-slate-400 mb-1">🔥 S级</div>
+                                <div id="gap-srank" class="font-bold text-red-400">0 个</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 进阶转换比例看板 -->
+                <div class="glass-panel rounded-2xl p-4 border border-slate-700/60 text-xs text-slate-400 flex flex-wrap justify-between gap-2">
+                    <span class="font-bold text-slate-300">当前汇率：</span>
+                    <span id="rate-info">1 月亮 = 6 星星 | 1 太阳 = 36 星星 | 1 S级 = 216 星星 | 1 SS级 = 1296 星星</span>
+                </div>
+
             </div>
         </div>
 
-        <!-- Mode Toggle Tabs -->
-        <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab('loadMode')">⚡ 正向：輸入當前載重算匹配</button>
-            <button class="tab-btn" onclick="switchTab('targetMode')">🎯 反向：按時間/次數查所需載重</button>
-        </div>
-
-        <!-- TAB 1: Load Mode -->
-        <div id="loadMode" class="panel">
-            <div class="panel-title">📦 輸入您的部隊總載重 (M)</div>
-            <div class="input-group">
-                <div class="input-wrapper">
-                    <input type="number" id="loadInput" class="custom-input" placeholder="例如: 7.58" step="0.01" min="0" value="7.58" oninput="updateAllCalculations()">
-                    <span class="unit">M 載重</span>
-                </div>
-                <div class="quick-btns">
-                    <button class="btn-chip" onclick="addLoad(1)">+1M</button>
-                    <button class="btn-chip" onclick="addLoad(5)">+5M</button>
-                    <button class="btn-chip" onclick="addLoad(10)">+10M</button>
-                    <button class="btn-chip" onclick="addLoad(50)">+50M</button>
-                    <button class="btn-chip" onclick="addLoad(100)">+100M</button>
-                    <button class="btn-chip clear" onclick="clearLoad()">清空</button>
-                </div>
-            </div>
-
-            <div class="results-grid">
-                <div class="res-card">
-                    <span class="label">可容納獲取次數</span>
-                    <span class="val" id="resCount" style="color: var(--accent-gold);">0 次</span>
-                    <span class="sub" id="resStepIndex">對應第 0 階梯</span>
-                </div>
-                <div class="res-card">
-                    <span class="label">最長可掛機時間</span>
-                    <span class="val" id="resTime" style="color: var(--accent-cyan);">0 小時 0 分</span>
-                    <span class="sub" id="resHours">約 0.0 小時</span>
-                </div>
-                <div class="res-card">
-                    <span class="label">預計獲取資源總量</span>
-                    <span class="val" id="resResource" style="color: var(--accent-purple);">0</span>
-                    <span class="sub" id="resRate">速率: 0/分</span>
-                </div>
-            </div>
-
-            <!-- Distance to Next Tier Progress Bar -->
-            <div class="progress-box">
-                <div class="progress-header">
-                    <span>🚀 距離下一個載重點差距</span>
-                    <span id="progressText" class="gap-highlight">還差 0.00 M</span>
-                </div>
-                <div class="progress-track">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div class="progress-footer">
-                    <span id="curNodeText">當前: 0 M</span>
-                    <span id="nextNodeText">下一目標: 0 M (+30分鐘)</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 2: Target Mode -->
-        <div id="targetMode" class="panel hidden">
-            <div class="panel-title">🎯 選擇期望獲取次數 (查所需載重)</div>
-            <div class="input-group">
-                <label class="input-label">輸入精髓獲取次數（每30分鐘獲取1次）：</label>
-                <div class="input-wrapper">
-                    <input type="number" id="targetCountInput" class="custom-input" min="1" value="10" oninput="updateAllCalculations()">
-                    <span class="unit">次 (即 <span id="targetHoursDisplay">5.0</span> 小時)</span>
-                </div>
-                <div class="quick-btns">
-                    <button class="btn-chip" onclick="setTargetCount(4)">2小時 (4次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(8)">4小時 (8次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(10)">5小時 (10次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(16)">8小時 (16次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(24)">12小時 (24次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(48)">24小時 (48次)</button>
-                </div>
-            </div>
-
-            <div class="results-grid">
-                <div class="res-card">
-                    <span class="label">需要載重 (M)</span>
-                    <span class="val" id="targetReqLoad" style="color: var(--accent-gold);">0 M</span>
-                    <span class="sub" id="targetFormulaSub">計算公式: ROUNDUP(次數 × 單次門檻, 2)</span>
-                </div>
-                <div class="res-card">
-                    <span class="label">對應掛機時間</span>
-                    <span class="val" id="targetDuration" style="color: var(--accent-cyan);">0 小時</span>
-                    <span class="sub" id="targetTotalMins">共 0 分鐘</span>
-                </div>
-                <div class="res-card">
-                    <span class="label">可收集資源總量</span>
-                    <span class="val" id="targetTotalResource" style="color: var(--accent-green);">0</span>
-                    <span class="sub">全額無溢出收貨</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tier Table Comparison Panel -->
-        <div class="panel">
-            <div class="panel-title">📊 當前遺跡階梯對照表（動態匹配與自動滾動定位）</div>
-            <div class="table-container" id="tableContainer">
-                <table id="tierTable">
-                    <thead>
-                        <tr>
-                            <th>序號</th>
-                            <th>掛機時長</th>
-                            <th>獲取次數</th>
-                            <th>門檻載重 (M)</th>
-                            <th>累計資源數量</th>
-                            <th>狀態匹配</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <!-- Dynamic content -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <!-- 页脚 -->
+        <footer class="text-center text-xs text-slate-500 py-4">
+            将领合成计算机 &copy; 策略手游实用工具
+        </footer>
     </div>
 
     <script>
-        // 遺跡基礎配置（對齊 Excel 算法及 A3 單次門檻載重）
-        const RELIC_CONFIG = {
-            small: {
-                name: '小型遺跡',
-                ratePerMin: 24500,
-                stepLoadA3: 0.74 // Excel A3 = ROUNDUP(24500*30/1e6, 2)
-            },
-            medium: {
-                name: '中型遺跡',
-                ratePerMin: 44200,
-                stepLoadA3: 1.33 // Excel A3 = ROUNDUP(44200*30/1e6, 2)
-            },
-            large: {
-                name: '大型遺跡',
-                ratePerMin: 72700,
-                stepLoadA3: 2.19 // Excel A3 = ROUNDUP(72700*30/1e6, 2)
-            },
-            mega: {
-                name: '巨型遺跡',
-                ratePerMin: 118000,
-                stepLoadA3: 3.54 // Excel A3 = ROUNDUP(118000*30/1e6, 2)
-            }
+        // 核心数据模型
+        let currentMode = 'normal'; // 'normal' (6合1) 或 'event' (5合1)
+
+        // 等级名称映射与顺序
+        const LEVELS = ['star', 'moon', 'sun', 'srank', 'ssrank'];
+        const LEVEL_NAMES = {
+            star: '星星将领',
+            moon: '月亮将领',
+            sun: '太阳将领',
+            srank: 'S级将领',
+            ssrank: 'SS级将领'
         };
 
-        // Excel 公式 1 (表格列): ROUNDUP($E$3 * count * 30 / 1000000, 2)
-        function getReqLoad(rate, count) {
-            if (count <= 0) return 0;
-            const raw = (rate * count * 30) / 1000000;
-            return Math.ceil(Math.round(raw * 1000000) / 10000) / 100;
+        // 切换模式
+        function setMode(mode) {
+            currentMode = mode;
+            const normalBtn = document.getElementById('mode-normal-btn');
+            const eventBtn = document.getElementById('mode-event-btn');
+            const modeBadge = document.getElementById('mode-badge');
+
+            if (mode === 'normal') {
+                normalBtn.className = "relative z-10 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 text-white bg-slate-800 shadow-lg border border-slate-600";
+                eventBtn.className = "relative z-10 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 text-slate-400 hover:text-white";
+                modeBadge.className = "absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold";
+                modeBadge.innerText = "常规模式 (6合1)";
+            } else {
+                eventBtn.className = "relative z-10 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 text-white bg-red-600 shadow-lg shadow-red-900/50";
+                normalBtn.className = "relative z-10 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 text-slate-400 hover:text-white";
+                modeBadge.className = "absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 font-semibold active-event-glow";
+                modeBadge.innerText = "限时活动 (5合1)";
+            }
+
+            calculate();
         }
 
-        // Excel 公式 2 (可容納次數): ROUNDDOWN((F3 * 1000000) / (rate * 30), 0)
-        function getCapacityCount(rate, load) {
-            if (load <= 0) return 0;
-            return Math.floor((load * 1000000) / (rate * 30));
+        // 快捷调整库存输入
+        function adjustValue(id, delta) {
+            const input = document.getElementById(`input-${id}`);
+            let val = parseInt(input.value) || 0;
+            val = Math.max(0, val + delta);
+            input.value = val;
+            calculate();
         }
 
-        // Excel 公式 3 (反向查找 H5): ROUNDUP(H3 * A3, 2)
-        function getTargetReqLoadExcel(stepLoadA3, count) {
-            if (count <= 0) return 0;
-            const raw = count * stepLoadA3;
-            return Math.ceil(Math.round(raw * 1000000) / 10000) / 100;
+        // 快捷调整目标数量
+        function adjustTargetCount(delta) {
+            const input = document.getElementById('target-count');
+            let val = parseInt(input.value) || 1;
+            val = Math.max(1, val + delta);
+            input.value = val;
+            calculate();
         }
 
-        let currentType = 'small';
-        let currentTab = 'loadMode';
+        // 清空数据
+        function clearInventory() {
+            LEVELS.forEach(lvl => {
+                document.getElementById(`input-${lvl}`).value = 0;
+            });
+            calculate();
+        }
 
-        window.onload = function() {
-            document.querySelectorAll('.relic-card').forEach(card => {
-                card.addEventListener('click', function() {
-                    document.querySelectorAll('.relic-card').forEach(c => c.classList.remove('active'));
-                    this.classList.add('active');
-                    currentType = this.getAttribute('data-type');
-                    updateAllCalculations();
-                });
+        // 填充测试示例数据
+        function fillDemoData() {
+            document.getElementById('input-star').value = 14;
+            document.getElementById('input-moon').value = 7;
+            document.getElementById('input-sun').value = 3;
+            document.getElementById('input-srank').value = 1;
+            document.getElementById('input-ssrank').value = 0;
+            calculate();
+        }
+
+        // 获得当前模式下的合成倍率 (1个高阶需要的低阶数量)
+        function getRatio() {
+            return currentMode === 'event' ? 5 : 6;
+        }
+
+        // 计算一个特定等级相当于多少个基础“星星”
+        function getStarEquivalent(level, ratio) {
+            switch(level) {
+                case 'star': return 1;
+                case 'moon': return ratio;
+                case 'sun': return Math.pow(ratio, 2);
+                case 'srank': return Math.pow(ratio, 3);
+                case 'ssrank': return Math.pow(ratio, 4);
+                default: return 1;
+            }
+        }
+
+        // 核心计算逻辑
+        function calculate() {
+            const ratio = getRatio();
+
+            // 1. 获取输入数据
+            const inventory = {};
+            LEVELS.forEach(lvl => {
+                inventory[lvl] = Math.max(0, parseInt(document.getElementById(`input-${lvl}`).value) || 0);
             });
 
-            updateAllCalculations();
-        };
+            const targetLevel = document.getElementById('target-level').value;
+            const targetCount = Math.max(1, parseInt(document.getElementById('target-count').value) || 1);
 
-        function switchTab(tabId) {
-            currentTab = tabId;
-            document.querySelectorAll('.nav-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
-            if (tabId === 'loadMode') {
-                document.querySelectorAll('.nav-tabs .tab-btn')[0].classList.add('active');
-                document.getElementById('loadMode').classList.remove('hidden');
-                document.getElementById('targetMode').classList.add('hidden');
-            } else {
-                document.querySelectorAll('.nav-tabs .tab-btn')[1].classList.add('active');
-                document.getElementById('loadMode').classList.add('hidden');
-                document.getElementById('targetMode').classList.remove('hidden');
-            }
-            updateAllCalculations();
-        }
+            // 更新提示的比率文本
+            const starPerMoon = ratio;
+            const starPerSun = Math.pow(ratio, 2);
+            const starPerS = Math.pow(ratio, 3);
+            const starPerSS = Math.pow(ratio, 4);
+            document.getElementById('rate-info').innerText = 
+                `1月亮=${starPerMoon}星 | 1太阳=${starPerSun}星 | 1S级=${starPerS}星 | 1SS级=${starPerSS}星`;
 
-        function formatNumber(num) {
-            return Math.round(num).toLocaleString('zh-CN');
-        }
+            // -------------------------------------------------------------
+            // 功能一：全量向上合成计算 (从低级逐级向高级进位)
+            // -------------------------------------------------------------
+            let tempStar = inventory.star;
+            let tempMoon = inventory.moon + Math.floor(tempStar / ratio);
+            let remStar = tempStar % ratio;
 
-        function addLoad(val) {
-            const input = document.getElementById('loadInput');
-            let cur = parseFloat(input.value) || 0;
-            input.value = (cur + val).toFixed(2);
-            updateAllCalculations();
-        }
+            let tempSun = inventory.sun + Math.floor(tempMoon / ratio);
+            let remMoon = tempMoon % ratio;
 
-        function clearLoad() {
-            document.getElementById('loadInput').value = '';
-            updateAllCalculations();
-        }
+            let tempS = inventory.srank + Math.floor(tempSun / ratio);
+            let remSun = tempSun % ratio;
 
-        function setTargetCount(count) {
-            document.getElementById('targetCountInput').value = count;
-            updateAllCalculations();
-        }
+            let finalSS = inventory.ssrank + Math.floor(tempS / ratio);
+            let remS = tempS % ratio;
 
-        function updateAllCalculations() {
-            const matchedCount = calculateLoadMode();
-            const targetCount = calculateTargetMode();
-            renderTable(matchedCount, targetCount);
-        }
+            // 渲染最大化合成结果
+            document.getElementById('res-synth-ssrank').innerText = finalSS;
+            document.getElementById('res-synth-srank').innerText = remS;
+            document.getElementById('res-synth-sun').innerText = remSun;
+            document.getElementById('res-synth-moon').innerText = remMoon;
+            document.getElementById('res-synth-star').innerText = remStar;
 
-        function calculateLoadMode() {
-            const relic = RELIC_CONFIG[currentType];
-            const load = parseFloat(document.getElementById('loadInput').value) || 0;
-            
-            const count = getCapacityCount(relic.ratePerMin, load);
-            const timeMins = count * 30;
-            const hours = Math.floor(timeMins / 60);
-            const mins = timeMins % 60;
-            const totalResource = timeMins * relic.ratePerMin;
+            // 计算所有库存的总星星当量
+            let totalStarsHave = 0;
+            LEVELS.forEach(lvl => {
+                totalStarsHave += inventory[lvl] * getStarEquivalent(lvl, ratio);
+            });
+            document.getElementById('res-total-stars').innerText = `${totalStarsHave.toLocaleString()} 个`;
 
-            document.getElementById('resCount').innerText = count + ' 次';
-            document.getElementById('resStepIndex').innerText = count > 0 ? `匹配第 ${count} 階梯` : '未達到最低要求階梯';
-            document.getElementById('resTime').innerText = `${hours} 小時 ${mins} 分`;
-            document.getElementById('resHours').innerText = `約 ${(timeMins / 60).toFixed(1)} 小時`;
-            document.getElementById('resResource').innerText = formatNumber(totalResource);
-            document.getElementById('resRate').innerText = `速率: ${formatNumber(relic.ratePerMin)}/分`;
+            // -------------------------------------------------------------
+            // 功能二：目标缺口计算与推导
+            // -------------------------------------------------------------
+            const singleTargetStars = getStarEquivalent(targetLevel, ratio);
+            const totalTargetStars = singleTargetStars * targetCount;
 
-            const curReq = getReqLoad(relic.ratePerMin, count);
-            const nextReq = getReqLoad(relic.ratePerMin, count + 1);
-            
-            let gap = (nextReq - load).toFixed(2);
-            if (gap <= 0) gap = "0.00";
-            
-            let range = nextReq - curReq;
-            let progress = range > 0 ? ((load - curReq) / range) * 100 : 0;
-            if (progress < 0) progress = 0;
-            if (progress > 100) progress = 100;
+            document.getElementById('res-target-need-stars').innerText = `${totalTargetStars.toLocaleString()} 个`;
+            document.getElementById('res-current-have-stars').innerText = `${totalStarsHave.toLocaleString()} 个`;
 
-            document.getElementById('progressText').innerText = `還差 ${gap} M 載重即可達到下一階`;
-            document.getElementById('progressFill').style.width = `${progress}%`;
-            document.getElementById('curNodeText').innerText = `當前載重: ${load.toFixed(2)} M (本階門檻 ${curReq.toFixed(2)}M)`;
-            document.getElementById('nextNodeText').innerText = `目標: ${nextReq.toFixed(2)} M (+30分鐘)`;
+            const statusBanner = document.getElementById('status-banner');
+            const statusIcon = document.getElementById('status-icon');
+            const statusTitle = document.getElementById('status-title');
+            const statusDesc = document.getElementById('status-desc');
 
-            return count;
-        }
+            const gapBox = document.getElementById('gap-suggestion-box');
 
-        function calculateTargetMode() {
-            const relic = RELIC_CONFIG[currentType];
-            let count = parseInt(document.getElementById('targetCountInput').value) || 1;
-            if (count < 1) count = 1;
+            if (totalStarsHave >= totalTargetStars) {
+                // 库存充足
+                const extraStars = totalStarsHave - totalTargetStars;
+                const extraTargets = Math.floor(extraStars / singleTargetStars);
 
-            const timeMins = count * 30;
-            const hours = (timeMins / 60).toFixed(1);
-
-            const reqLoad = getTargetReqLoadExcel(relic.stepLoadA3, count).toFixed(2);
-            const totalResource = timeMins * relic.ratePerMin;
-
-            document.getElementById('targetHoursDisplay').innerText = hours;
-            document.getElementById('targetReqLoad').innerText = reqLoad + ' M';
-            document.getElementById('targetFormulaSub').innerText = `公式: ROUNDUP(${count}次 × ${relic.stepLoadA3}M, 2)`;
-            document.getElementById('targetDuration').innerText = `${Math.floor(timeMins/60)} 小時 ${timeMins%60} 分`;
-            document.getElementById('targetTotalMins').innerText = `共 ${timeMins} 分鐘 (${hours}小時)`;
-            document.getElementById('targetTotalResource').innerText = formatNumber(totalResource);
-
-            return count;
-        }
-
-        function renderTable(matchedCount, targetCount) {
-            const relic = RELIC_CONFIG[currentType];
-            const tbody = document.getElementById('tableBody');
-            let html = '';
-
-            const focusCount = currentTab === 'loadMode' ? matchedCount : targetCount;
-            const maxRows = Math.max(58, focusCount + 10);
-
-            for (let i = 1; i <= maxRows; i++) {
-                const count = i;
-                const mins = count * 30;
-                const hours = (mins / 60).toFixed(1);
-                const reqLoad = getReqLoad(relic.ratePerMin, count).toFixed(2);
-                const totalResource = mins * relic.ratePerMin;
-
-                let rowClass = '';
-                let statusText = '-';
-
-                if (currentTab === 'loadMode') {
-                    if (count === matchedCount) {
-                        rowClass = 'active-row';
-                        statusText = '🎯 正向匹配';
-                    } else if (count === matchedCount + 1) {
-                        rowClass = 'next-row';
-                        statusText = '⚡ 下一階梯';
-                    }
+                statusBanner.className = "p-4 rounded-xl bg-emerald-950/60 border border-emerald-500/40 flex items-center gap-3";
+                statusIcon.innerText = "🎉";
+                statusTitle.className = "font-bold text-sm text-emerald-300";
+                statusTitle.innerText = "库存充足！完全可以满足需求";
+                
+                if (extraTargets > 0) {
+                    statusDesc.innerText = `完成目标后，多余的资源还可以再额外合成 ${extraTargets} 个 ${LEVEL_NAMES[targetLevel]}（剩余折算 ${extraStars} 颗星）。`;
                 } else {
-                    if (count === targetCount) {
-                        rowClass = 'target-row';
-                        statusText = '🎯 目標次數';
-                    }
+                    statusDesc.innerText = `当前资源刚好满足目标，余下折算相当于 ${extraStars} 颗星星。`;
                 }
 
-                html += `
-                    <tr id="row-${count}" class="${rowClass}">
-                        <td>第 ${count} 階</td>
-                        <td>${hours} 小時 (${mins}分)</td>
-                        <td>${count} 次</td>
-                        <td><strong>${reqLoad} M</strong></td>
-                        <td>${formatNumber(totalResource)}</td>
-                        <td>${statusText}</td>
-                    </tr>
-                `;
+                // 清空或隐去缺口面板
+                document.getElementById('gap-star').innerText = "0 个";
+                document.getElementById('gap-moon').innerText = "0 个";
+                document.getElementById('gap-sun').innerText = "0 个";
+                document.getElementById('gap-srank').innerText = "0 个";
+                gapBox.classList.add('opacity-40');
+            } else {
+                // 库存不够，计算缺口
+                gapBox.classList.remove('opacity-40');
+                const neededStars = totalTargetStars - totalStarsHave;
+
+                statusBanner.className = "p-4 rounded-xl bg-red-950/50 border border-red-500/40 flex items-center gap-3";
+                statusIcon.innerText = "⚠️";
+                statusTitle.className = "font-bold text-sm text-red-300";
+                statusTitle.innerText = `还差 ${neededStars.toLocaleString()} 个基础星星将领`;
+                statusDesc.innerText = `当前已有资源可折合 ${(totalStarsHave/singleTargetStars).toFixed(2)} 个目标，进度: ${((totalStarsHave/totalTargetStars)*100).toFixed(1)}%`;
+
+                // 算各种补充方案缺口 (向上取整)
+                const gapStarNeeded = neededStars;
+                const gapMoonNeeded = Math.ceil(neededStars / getStarEquivalent('moon', ratio));
+                const gapSunNeeded = Math.ceil(neededStars / getStarEquivalent('sun', ratio));
+                const gapSNeeded = Math.ceil(neededStars / getStarEquivalent('srank', ratio));
+
+                document.getElementById('gap-star').innerText = `${gapStarNeeded.toLocaleString()} 个`;
+                document.getElementById('gap-moon').innerText = `${gapMoonNeeded.toLocaleString()} 个`;
+                document.getElementById('gap-sun').innerText = `${gapSunNeeded.toLocaleString()} 个`;
+
+                // 如果目标本身就是S级或更低，显示对应层级的建议
+                const sRankContainer = document.getElementById('gap-srank-container');
+                if (targetLevel === 'ssrank') {
+                    sRankContainer.style.display = 'block';
+                    document.getElementById('gap-srank').innerText = `${gapSNeeded.toLocaleString()} 个`;
+                } else {
+                    sRankContainer.style.display = 'none';
+                }
             }
-
-            tbody.innerHTML = html;
-
-            // 平滑自動滾動至高亮行
-            setTimeout(() => {
-                const activeRowId = currentTab === 'loadMode' ? `row-${matchedCount}` : `row-${targetCount}`;
-                const targetRowEl = document.getElementById(activeRowId);
-                if (targetRowEl) {
-                    targetRowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }, 50);
         }
+
+        // 页面加载完成后自动计算一次
+        window.onload = function() {
+            calculate();
+        };
     </script>
 </body>
 </html>
