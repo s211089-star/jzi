@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>将领合成计算机</title>
+    <title>将领合成计算机 - 3k887忆春风制作</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -39,6 +39,35 @@
                 radial-gradient(at 20% 20%, rgba(251, 191, 36, 0.05) 0px, transparent 50%),
                 radial-gradient(at 80% 80%, rgba(99, 102, 241, 0.08) 0px, transparent 50%);
             color: #f1f5f9;
+            position: relative;
+        }
+
+        /* 全屏倾斜重复网格水印 */
+        .watermark-grid-bg {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            z-index: 9999;
+            pointer-events: none;
+            user-select: none;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            justify-content: space-around;
+            transform: rotate(-22deg);
+            opacity: 0.12;
+        }
+
+        .watermark-item {
+            font-size: 15px;
+            font-weight: 800;
+            color: #f59e0b;
+            padding: 35px 45px;
+            white-space: nowrap;
+            letter-spacing: 1px;
+            text-shadow: 0 0 2px rgba(0,0,0,0.8);
         }
 
         .gold-gradient-text {
@@ -47,21 +76,12 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .gold-border-glow {
-            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
-            border: 1px solid rgba(245, 158, 11, 0.4);
-        }
-
-        .active-event-glow {
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
-            border-color: rgba(239, 68, 68, 0.6);
-        }
-
         .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
+            background: rgba(30, 41, 59, 0.75);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
         }
 
         /* 隐藏数字输入框的箭头 */
@@ -73,18 +93,50 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+
+        /* 卡片角落水印标记 */
+        .card-corner-watermark {
+            position: absolute;
+            bottom: 4px;
+            right: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            color: rgba(245, 158, 11, 0.25);
+            pointer-events: none;
+            user-select: none;
+            letter-spacing: 0.5px;
+        }
+
+        /* 动态背景斜纹水印纹理 */
+        .input-watermark-bg {
+            background-image: linear-gradient(135deg, rgba(245, 158, 11, 0.03) 25%, transparent 25%, transparent 50%, rgba(245, 158, 11, 0.03) 50%, rgba(245, 158, 11, 0.03) 75%, transparent 75%, transparent);
+            background-size: 20px 20px;
+        }
     </style>
 </head>
 <body class="min-h-screen py-6 px-3 sm:px-6 font-sans">
-    <div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- 全屏平铺背景水印（无点击穿透） -->
+    <div class="watermark-grid-bg" id="watermark-container">
+        <!-- JS 动态平铺水印项 -->
+    </div>
+
+    <div class="max-w-5xl mx-auto space-y-6 relative z-10">
 
         <!-- 顶部 Header 标题与模式切换 -->
-        <header class="glass-panel rounded-2xl p-4 sm:p-6 text-center relative overflow-hidden">
-            <div class="absolute -right-10 -top-10 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <header class="glass-panel rounded-2xl p-4 sm:p-6 text-center relative overflow-hidden border border-amber-500/20 shadow-2xl">
+            <!-- Header 右上角与背景嵌入水印 -->
+            <div class="absolute -right-6 -top-2 text-[55px] font-black text-amber-500/5 select-none pointer-events-none rotate-12">
+                3k887忆春风制作
+            </div>
+            <div class="absolute -left-6 -bottom-2 text-[40px] font-black text-amber-500/5 select-none pointer-events-none -rotate-12">
+                3k887忆春风制作
+            </div>
+
             <div class="relative z-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold mb-2">
-                    <i class="fa-solid fa-chess-king">
-                    </i> 手游辅助计算工具
+                <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold mb-2 shadow-inner">
+                    <i class="fa-solid fa-certificate text-amber-400"></i>
+                    <span>正版水印出品：<strong class="text-amber-300">3k887忆春风制作</strong></span>
                 </div>
                 <h1 class="text-3xl sm:text-4xl font-black tracking-wide gold-gradient-text mb-2">
                     将领合成计算机
@@ -105,6 +157,7 @@
                     </button>
                 </div>
             </div>
+            <div class="card-corner-watermark">【3k887忆春风制作】</div>
         </header>
 
         <!-- 主内容区域：两列布局（桌面端） -->
@@ -113,7 +166,7 @@
             <!-- 左侧：输入面板 -->
             <div class="lg:col-span-5 space-y-6">
                 <!-- 1. 当前库存输入 -->
-                <div class="glass-panel rounded-2xl p-5 border border-slate-700/60 shadow-xl">
+                <div class="glass-panel rounded-2xl p-5 border border-slate-700/60 shadow-xl relative overflow-hidden">
                     <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-700/50">
                         <h2 class="text-lg font-bold flex items-center gap-2 text-amber-400">
                             <i class="fa-solid fa-boxes-stacked"></i> 当前拥有的将领
@@ -128,11 +181,10 @@
                         </div>
                     </div>
 
-                    <!-- 5个等级的输入框组 -->
-                    <div class="space-y-3" id="inventory-inputs">
-                        <!-- 由 JS 动态渲染或静态维护结构以提升可读性 -->
+                    <!-- 水印斜纹背景输入组 -->
+                    <div class="space-y-3 input-watermark-bg p-1 rounded-xl" id="inventory-inputs">
                         <!-- 星星 -->
-                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 relative">
                             <div class="flex items-center gap-2.5 min-w-[100px]">
                                 <span class="text-xl">⭐</span>
                                 <span class="text-sm font-bold text-sky-400">星星将领</span>
@@ -145,7 +197,7 @@
                         </div>
 
                         <!-- 月亮 -->
-                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 relative">
                             <div class="flex items-center gap-2.5 min-w-[100px]">
                                 <span class="text-xl">🌙</span>
                                 <span class="text-sm font-bold text-purple-400">月亮将领</span>
@@ -158,7 +210,7 @@
                         </div>
 
                         <!-- 太阳 -->
-                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 relative">
                             <div class="flex items-center gap-2.5 min-w-[100px]">
                                 <span class="text-xl">☀️</span>
                                 <span class="text-sm font-bold text-orange-400">太阳将领</span>
@@ -171,7 +223,7 @@
                         </div>
 
                         <!-- S级 -->
-                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 relative">
                             <div class="flex items-center gap-2.5 min-w-[100px]">
                                 <span class="text-xl">🔥</span>
                                 <span class="text-sm font-bold text-red-400">S级将领</span>
@@ -184,7 +236,7 @@
                         </div>
 
                         <!-- SS级 -->
-                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 relative">
                             <div class="flex items-center gap-2.5 min-w-[100px]">
                                 <span class="text-xl">👑</span>
                                 <span class="text-sm font-bold text-yellow-400">SS级将领</span>
@@ -196,15 +248,16 @@
                             </div>
                         </div>
                     </div>
+                    <div class="card-corner-watermark">3k887忆春风制作</div>
                 </div>
 
                 <!-- 2. 目标等级推导 -->
-                <div class="glass-panel rounded-2xl p-5 border border-slate-700/60 shadow-xl">
+                <div class="glass-panel rounded-2xl p-5 border border-slate-700/60 shadow-xl relative overflow-hidden">
                     <h2 class="text-lg font-bold flex items-center gap-2 text-amber-400 mb-4 pb-3 border-b border-slate-700/50">
                         <i class="fa-solid fa-bullseye"></i> 想要合成的目标
                     </h2>
                     
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-2 gap-3 relative z-10">
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">目标等级</label>
                             <select id="target-level" onchange="calculate()" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm font-bold text-amber-300 focus:outline-none focus:border-amber-500">
@@ -223,6 +276,7 @@
                             </div>
                         </div>
                     </div>
+                    <div class="card-corner-watermark">3k887忆春风制作</div>
                 </div>
             </div>
 
@@ -231,6 +285,13 @@
 
                 <!-- 功能一：最大化合成结果 -->
                 <div class="glass-panel rounded-2xl p-5 border border-slate-700/60 shadow-xl relative overflow-hidden">
+                    <!-- 嵌入式背景巨型隐形水印 -->
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.04]">
+                        <span class="text-5xl sm:text-6xl font-black tracking-widest text-amber-300 -rotate-12">
+                            3k887忆春风制作
+                        </span>
+                    </div>
+
                     <div id="mode-badge" class="absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
                         常规模式 (6合1)
                     </div>
@@ -240,7 +301,7 @@
                     </h2>
 
                     <!-- 阶梯合成示意图/卡片展示 -->
-                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mb-5">
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mb-5 relative z-10">
                         <!-- SS级结果 -->
                         <div class="p-3 rounded-xl bg-slate-900/80 border border-yellow-500/30 text-center flex flex-col items-center justify-center relative">
                             <span class="text-2xl mb-1">👑</span>
@@ -273,20 +334,21 @@
                         </div>
                     </div>
 
-                    <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200/90 flex justify-between items-center">
+                    <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200/90 flex justify-between items-center relative z-10">
                         <span>当前所有库存折算为基础<strong class="text-amber-400">星星将领</strong>总量：</span>
                         <span id="res-total-stars" class="text-base font-black text-amber-400">0 个</span>
                     </div>
+                    <div class="card-corner-watermark">3k887忆春风制作</div>
                 </div>
 
                 <!-- 功能二：目标缺口分析 -->
-                <div class="glass-panel rounded-2xl p-5 border border-slate-700/60 shadow-xl space-y-4">
+                <div class="glass-panel rounded-2xl p-5 border border-slate-700/60 shadow-xl space-y-4 relative overflow-hidden">
                     <h2 class="text-lg font-bold flex items-center gap-2 text-slate-200">
                         <i class="fa-solid fa-calculator text-amber-400"></i> 目标缺口与补充建议
                     </h2>
 
                     <!-- 状态提示条 -->
-                    <div id="status-banner" class="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3">
+                    <div id="status-banner" class="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-3 relative z-10">
                         <div id="status-icon" class="text-2xl">💡</div>
                         <div>
                             <div id="status-title" class="font-bold text-sm text-slate-200">请输入数据</div>
@@ -295,7 +357,7 @@
                     </div>
 
                     <!-- 详细数据对比 -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs relative z-10">
                         <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
                             <div class="text-slate-400">目标所需基础星星：</div>
                             <div id="res-target-need-stars" class="text-lg font-bold text-slate-200">0 个</div>
@@ -307,9 +369,10 @@
                     </div>
 
                     <!-- 缺口补充建议方案 -->
-                    <div id="gap-suggestion-box" class="pt-2">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">
-                            若直接补充特定等级（还差）：
+                    <div id="gap-suggestion-box" class="pt-2 relative z-10">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5 flex justify-between items-center">
+                            <span>若直接补充特定等级（还差）：</span>
+                            <span class="text-[10px] text-amber-500/50 font-normal">水印防伪：3k887忆春风制作</span>
                         </h3>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                             <div class="p-2.5 rounded-xl bg-slate-900/40 border border-slate-800/80 text-center">
@@ -330,24 +393,44 @@
                             </div>
                         </div>
                     </div>
+                    <div class="card-corner-watermark">3k887忆春风制作</div>
                 </div>
 
                 <!-- 进阶转换比例看板 -->
-                <div class="glass-panel rounded-2xl p-4 border border-slate-700/60 text-xs text-slate-400 flex flex-wrap justify-between gap-2">
+                <div class="glass-panel rounded-2xl p-4 border border-slate-700/60 text-xs text-slate-400 flex flex-wrap justify-between items-center gap-2 relative">
                     <span class="font-bold text-slate-300">当前汇率：</span>
                     <span id="rate-info">1 月亮 = 6 星星 | 1 太阳 = 36 星星 | 1 S级 = 216 星星 | 1 SS级 = 1296 星星</span>
+                    <span class="text-amber-500/40 font-bold ml-auto text-[11px]">3k887忆春风制作</span>
                 </div>
 
             </div>
         </div>
 
-        <!-- 页脚 -->
-        <footer class="text-center text-xs text-slate-500 py-4">
-            将领合成计算机 &copy; 策略手游实用工具
+        <!-- 页脚水印与版权说明 -->
+        <footer class="text-center text-xs text-slate-500 py-6 border-t border-slate-800/60 mt-8 space-y-2">
+            <div class="flex items-center justify-center gap-2 text-amber-500/80 font-bold text-sm">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>将领合成计算机 &bull; 3k887忆春风制作</span>
+            </div>
+            <p class="text-slate-600 text-[11px]">
+                全自动游戏将领进阶计算 &bull; 水印防伪保护 &bull; 适配常规(6合1)及限时活动(5合1)
+            </p>
         </footer>
     </div>
 
     <script>
+        // 渲染全屏平铺网格水印
+        function generateWatermarks() {
+            const container = document.getElementById('watermark-container');
+            const watermarkText = "3k887忆春风制作";
+            // 填充足够的平铺文本
+            let html = '';
+            for (let i = 0; i < 90; i++) {
+                html += `<div class="watermark-item">${watermarkText}</div>`;
+            }
+            container.innerHTML = html;
+        }
+
         // 核心数据模型
         let currentMode = 'normal'; // 'normal' (6合1) 或 'event' (5合1)
 
@@ -376,7 +459,7 @@
             } else {
                 eventBtn.className = "relative z-10 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 text-white bg-red-600 shadow-lg shadow-red-900/50";
                 normalBtn.className = "relative z-10 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2 text-slate-400 hover:text-white";
-                modeBadge.className = "absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 font-semibold active-event-glow";
+                modeBadge.className = "absolute top-3 right-3 text-xs px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 font-semibold";
                 modeBadge.innerText = "限时活动 (5合1)";
             }
 
@@ -508,7 +591,7 @@
                 const extraStars = totalStarsHave - totalTargetStars;
                 const extraTargets = Math.floor(extraStars / singleTargetStars);
 
-                statusBanner.className = "p-4 rounded-xl bg-emerald-950/60 border border-emerald-500/40 flex items-center gap-3";
+                statusBanner.className = "p-4 rounded-xl bg-emerald-950/60 border border-emerald-500/40 flex items-center gap-3 relative z-10";
                 statusIcon.innerText = "🎉";
                 statusTitle.className = "font-bold text-sm text-emerald-300";
                 statusTitle.innerText = "库存充足！完全可以满足需求";
@@ -530,7 +613,7 @@
                 gapBox.classList.remove('opacity-40');
                 const neededStars = totalTargetStars - totalStarsHave;
 
-                statusBanner.className = "p-4 rounded-xl bg-red-950/50 border border-red-500/40 flex items-center gap-3";
+                statusBanner.className = "p-4 rounded-xl bg-red-950/50 border border-red-500/40 flex items-center gap-3 relative z-10";
                 statusIcon.innerText = "⚠️";
                 statusTitle.className = "font-bold text-sm text-red-300";
                 statusTitle.innerText = `还差 ${neededStars.toLocaleString()} 个基础星星将领`;
@@ -546,7 +629,7 @@
                 document.getElementById('gap-moon').innerText = `${gapMoonNeeded.toLocaleString()} 个`;
                 document.getElementById('gap-sun').innerText = `${gapSunNeeded.toLocaleString()} 个`;
 
-                // 如果目标本身就是S级或更低，显示对应层级的建议
+                // 如果目标本身就是SS级，显示S级层级的建议
                 const sRankContainer = document.getElementById('gap-srank-container');
                 if (targetLevel === 'ssrank') {
                     sRankContainer.style.display = 'block';
@@ -557,8 +640,9 @@
             }
         }
 
-        // 页面加载完成后自动计算一次
+        // 页面加载完成后自动生成水印并计算一次
         window.onload = function() {
+            generateWatermarks();
             calculate();
         };
     </script>
